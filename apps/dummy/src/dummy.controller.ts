@@ -5,7 +5,7 @@ import { DummyService } from './dummy.service';
 export class DummyController {
   constructor(private readonly dummyService: DummyService) {}
 
-  @Patch()
+  @Post()
   createProdcuts() {
     return this.dummyService.createProducts();
   }
