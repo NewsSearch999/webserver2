@@ -12,14 +12,31 @@ export class OrdersService {
     @Inject(BILLING_SERVICE) private billingClient: ClientProxy,
   ) {}
 
+  async findProductByPK(productId){
+    const searchQuery = `SELECT * FROM products WHERE productId = (?)`
+    const product = await this.connectionService.Query(
+      searchQuery, [
+        [
+          productId
+        ]
+      ]
+    )
+
+    return product
+  }
+
   async createOrder(request) {
+
     const createQuery = `INSERT INTO orders (productId, quantity, price, orderState, deliveryState) values (?)`;
     try {
+      const product = await this.findProductByPK(request.productId)
+      console.log(product[0])
+      
       const order = await this.connectionService.Query(createQuery, [
         [
           request.productId,
           request.quantity,
-          request.price,
+          product[0].price,
           request.orderState,
           request.deliveryState
         ],

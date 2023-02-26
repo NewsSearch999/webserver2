@@ -1,33 +1,42 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Order } from './order.entity';
 
 @Entity('products')
 export class Product {
-  
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ type: 'int', name: 'productId' })
   productId: number;
 
-  @Column()
+  @Column('varchar', { length: 20 })
   productName: string;
-  
-  @Column()
+
+  @Column('varchar')
   description: string;
 
-  @Column()
+  @Column('varchar', { length: 50 })
   image: string;
 
-  @Column()
+  @Column('smallint', {
+    default: 0,
+  })
   price: number;
 
-  @Column({
-    default: 0
+  @Column('smallint', {
+    default: 0,
   })
   stock: number;
 
   @Column({
-    default: false
+    default: false,
   })
   isDeleted: boolean;
 
-
-
+  @OneToMany(() => Order, (order) => order.product, { eager: false })
+  order: Order[];
 }

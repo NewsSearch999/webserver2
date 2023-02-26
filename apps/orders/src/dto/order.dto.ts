@@ -10,10 +10,6 @@ import {
     @IsNumber()
     @IsNotEmpty()
     productId: number;
-
-    @IsPositive()
-    @IsNotEmpty()
-    price: number;
   
     @IsNumber()
     @IsNotEmpty()
