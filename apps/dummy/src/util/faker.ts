@@ -8,7 +8,8 @@ export function createRandomProduct(): Product {
     productName: faker.commerce.product(),
     description: faker.commerce.productDescription(),
     image: faker.image.imageUrl(),
-    price: Math.floor(Math.random() * 1000) + 10,
+    price: Math.floor(Math.random() * 10000) + 10,
+    stock: Math.floor(Math.random() * 1000),
   };
 }
 

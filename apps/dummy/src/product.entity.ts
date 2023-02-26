@@ -13,4 +13,11 @@ export class Product {
 
   @Column()
   price: number;
+
+  @Column({
+    default: 0
+  })
+  stock: number;
+
+
 }
