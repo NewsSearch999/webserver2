@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
-import { User } from './users/user.entity';
+import { User } from 'apps/auth/src/users/user.entity';
 
 export interface TokenPayload {
   userId: number;

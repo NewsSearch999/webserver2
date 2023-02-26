@@ -7,8 +7,9 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
-import { User } from './users/user.entity';
+import { User } from 'apps/auth/src/users/user.entity';
 import { UsersModule } from './users/users.module';
+import { EntityService } from 'y/entity';
 
 @Module({
   imports: [
@@ -40,13 +41,13 @@ import { UsersModule } from './users/users.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: `${configService.get('JWT_EXPIRATION')}s`,
+          expiresIn: `${configService.get('JWT_EXPIRATION')}`,
         },
       }),
       inject: [ConfigService],
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, EntityService],
 })
 export class AuthModule {}

@@ -5,7 +5,7 @@ import { AuthService } from './auth.service';
 import { CurrentUser } from './current-user.decorator';
 import JwtAuthGuard from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { User } from './users/user.entity';
+import { User } from 'apps/auth/src/users/user.entity';
 
 @Controller('auth')
 export class AuthController {

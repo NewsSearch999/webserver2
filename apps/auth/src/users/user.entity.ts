@@ -1,18 +1,26 @@
-import { BaseEntity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
 
-export class User extends BaseEntity {
+@Entity('users')
+@Unique(['email'])
+export class User {
   @PrimaryGeneratedColumn()
   userId: number;
 
   @Column('varchar', { length: 50 })
-  nickname: string;
+  email: string;
 
   @Column('varchar', { length: 50 })
   password: string;
-
-  @Column() //enum설정보류
+  //등급 bronze,silver,gold
+  @Column({ default: 'bronze' }) //enum설정보류
   accountType: string;
 
-  @Column()
+  @Column({ default: false })
   deletedType: boolean;
 }

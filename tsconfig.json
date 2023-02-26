@@ -25,6 +25,12 @@
       ],
       "@app/common/*": [
         "libs/common/src/*"
+      ],
+      "y/entity": [
+        "libs/entity/src"
+      ],
+      "y/entity/*": [
+        "libs/entity/src/*"
       ]
     }
   }

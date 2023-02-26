@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateUserRequest } from './dto/create-user.request';
+import { UserRequest } from './dto/create-user.request';
 import { User } from './user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -11,14 +12,29 @@ export class UsersService {
     private users: Repository<User>,
   ) {}
 
-  async createUser(request: CreateUserRequest) {
-    const { nickname, password } = request;
-    const exists = await this.users.findOne({
-      where: { nickname },
+  async createUser(request: UserRequest) {
+    const { email, password } = request;
+    const exist = await this.users.findOne({
+      where: { email },
     });
-    if (exists) return { ok: false, msg: '이미 가입된 아이디 입니다.' };
+    const salt = await bcrypt.genSalt();
+    const hashed = await bcrypt.hash(password, salt);
 
-    await this.users.save(this.users.create({ nickname, password }));
+    if (exist) return { ok: false, msg: '이미 가입된 이메일 입니다.' };
+
+    const user = this.users.create({ email, password: hashed });
+    await this.users.save(user);
+
     return { ok: true, msg: '가입완료' };
+  }
+
+  async login(request: UserRequest) {
+    const { email, password } = request;
+    const exist = await this.users.findOne({
+      where: { email },
+    });
+    if (!exist) return { ok: false, msg: '가입되지 않은 이메일 입니다' };
+    
+    if(await bcrypt.compare(password,exist.password))
   }
 }
