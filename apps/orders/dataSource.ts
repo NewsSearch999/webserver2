@@ -2,7 +2,7 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import { runSeeders, SeederOptions } from 'typeorm-extension';
 import { Product } from './src/product.entity';
 
-const options : DataSourceOptions & SeederOptions = {
+const options: DataSourceOptions & SeederOptions = {
   type: 'mysql',
   host: process.env.DB_HOST || '127.0.0.1',
   port: 3306,
@@ -14,9 +14,8 @@ const options : DataSourceOptions & SeederOptions = {
   synchronize: false,
   logging: true,
   seeds: ['src/database/seeds/*{.ts,.js}'],
-  factories: ['src/database/factories/*{.ts,.js}']
+  factories: ['src/database/factories/*{.ts,.js}'],
 };
-
 
 export const dataSource = new DataSource(options);
 
@@ -24,7 +23,5 @@ export const dataSource = new DataSource(options);
 
 //   await dataSource.initialize();
 //   await runSeeders(dataSource);
-  
+
 // })();
-
-

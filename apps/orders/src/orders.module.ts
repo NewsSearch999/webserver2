@@ -27,15 +27,13 @@ import { Product } from './product.entity';
       username: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [
-        Product
-      ],
+      entities: [Product],
       // keepConnectionAlive: true,
       // charset: 'utf8mb4',
       synchronize: false,
       logging: true,
     }),
-    TypeOrmModule.forFeature([Product]), 
+    TypeOrmModule.forFeature([Product]),
   ],
   controllers: [OrdersController],
   providers: [OrdersService, ConnectionService],
