@@ -8,7 +8,7 @@ export class DummyService {
   constructor(private connectionService: ConnectionService) {}
 
   async createProducts() {
-    const createQuery = `INSERT INTO products (productName, description, image, price) values (?)`;
+    const createQuery = `INSERT INTO products (productName, description, image, price, stock) values (?)`;
 
     for (let i = 0; i <= 10000; i++) {
       let product = createRandomProduct();
@@ -19,6 +19,7 @@ export class DummyService {
           product.description,
           product.image,
           product.price,
+          product.stock
         ],
       ]);
     }

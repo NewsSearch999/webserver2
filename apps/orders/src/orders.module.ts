@@ -3,9 +3,12 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import { ConnectionService } from './connection/connection.service';
+import { Order } from './entity/order.entity';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
-import { Product } from './product.entity';
+import { Product } from './entity/product.entity';
+import { RmqModule } from '@app/common/rmq/rmq.module';
+import { BILLING_SERVICE } from './constants/service';
 
 @Module({
   imports: [
@@ -28,14 +31,18 @@ import { Product } from './product.entity';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: [
-        Product
+        Product,
+        Order
       ],
-      // keepConnectionAlive: true,
+      keepConnectionAlive: true,
       // charset: 'utf8mb4',
       synchronize: false,
       logging: true,
     }),
-    TypeOrmModule.forFeature([Product]), 
+    TypeOrmModule.forFeature([Product, Order]),
+    RmqModule.register({
+      name: BILLING_SERVICE,
+    }), 
   ],
   controllers: [OrdersController],
   providers: [OrdersService, ConnectionService],

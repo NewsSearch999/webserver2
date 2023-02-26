@@ -1,18 +1,22 @@
 import {
     IsNotEmpty,
+    IsNumber,
     IsPhoneNumber,
     IsPositive,
     IsString,
   } from 'class-validator';
   
-  export class CreateOrderRequest {
-    @IsString()
+  export class OrderDto {
+    @IsNumber()
     @IsNotEmpty()
-    name: string;
-  
+    productId: number;
+
     @IsPositive()
+    @IsNotEmpty()
     price: number;
   
-    @IsPhoneNumber()
-    phoneNumber: string;
+    @IsNumber()
+    @IsNotEmpty()
+    quantity: number;
+
   }
