@@ -10,12 +10,12 @@ export class OrdersController {
   @Post()
   async createOrder(@Body() orderDto: OrderDto, @Req() req: any) {
     const request = {
-      productId : orderDto.productId,
-      price : orderDto.price,
+      productId: orderDto.productId,
+      price: orderDto.price,
       quantity: orderDto.quantity,
-      orderState : orderState.결제대기,
-      deliveryState: deliveryState.결제대기
-    }
+      orderState: orderState.결제대기,
+      deliveryState: deliveryState.결제대기,
+    };
     return this.ordersService.createOrder(request);
   }
 

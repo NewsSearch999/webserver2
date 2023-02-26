@@ -17,14 +17,11 @@
 //   factories: ['src/database/factories/*{.ts,.js}']
 // };
 
-
 // export const dataSource = new DataSource(options);
 
 // (async ()=>{
 
 //   await dataSource.initialize();
 //   await runSeeders(dataSource);
-  
+
 // })();
-
-

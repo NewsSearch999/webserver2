@@ -10,7 +10,7 @@ export class DummyService {
   async createProducts() {
     const createQuery = `INSERT INTO products (productName, description, image, price, stock) values (?)`;
 
-    for (let i = 0; i <= 10000; i++) {
+    for (let i = 0; i <= 1000; i++) {
       let product = createRandomProduct();
 
       await this.connectionService.Query(createQuery, [

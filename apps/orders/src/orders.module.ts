@@ -58,7 +58,7 @@ import { BILLING_SERVICE } from './constants/service';
     TypeOrmModule.forFeature([Product, Order]),
     RmqModule.register({
       name: BILLING_SERVICE,
-    }), 
+    }),
   ],
   controllers: [OrdersController],
   providers: [OrdersService, ConnectionService],
