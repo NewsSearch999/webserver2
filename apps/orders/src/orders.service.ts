@@ -13,7 +13,7 @@ export class OrdersService {
   ) {}
 
   async createOrder(request) {
-    const createQuery = `INSERT INTO products (productId, quantity, price, orderState, deliveryState) values (?)`;
+    const createQuery = `INSERT INTO orders (productId, quantity, price, orderState, deliveryState) values (?)`;
     try {
       const order = await this.connectionService.Query(createQuery, [
         [
