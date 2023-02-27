@@ -16,7 +16,7 @@ export class Product {
   productId: number;
 
   @ManyToOne(() => User, (user: User) => user.product, {
-    eager: true,
+    eager: false,
     cascade: ['update'],
     onDelete: 'CASCADE',
   })

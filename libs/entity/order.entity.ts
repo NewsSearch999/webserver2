@@ -31,7 +31,7 @@ export class Order {
   product: Promise<Product>;
 
   @ManyToOne(() => User, (user: User) => user.order, {
-    eager: true,
+    eager: false,
     cascade: ['update'],
     onDelete: 'CASCADE',
   })
