@@ -62,26 +62,18 @@ export class OrdersService {
    * @param page
    * @returns
    */
-  async getProducts(page: number) {
-    const pageNum = Number(page);
-    const offSetQuery = `
-    SELECT * FROM products 
-    WHERE isDeleted = false 
-    ORDER BY price ASC 
-    LIMIT 10 OFFSET ?`;
 
-    const lastPrice = Number(page);
+  async getProducts(price : number, productId?:number ){
     const seekQuery = `
-    SELECT * FROM products
-    WHERE isDeleted = false AND price > ?
-    ORDER BY price ASC
-    LIMIT 10`;
+    SELECT productId, productName, image, price, stock  FROM products
+    WHERE price >= ? AND productId >= ? AND isDeleted = false 
+    ORDER BY price, productId
+    LIMIT 20`
 
-    // return this.connectionService.Query(
-    //   offSetQuery, [ pageNum ]
-    // )
+    return this.connectionService.Query(
+      seekQuery, [ price, productId ]
+    )
 
-    return this.connectionService.Query(seekQuery, [lastPrice]);
   }
 
   /**
@@ -90,28 +82,20 @@ export class OrdersService {
    * @param page
    * @returns
    */
-  async findProducts(product: string, page: Number) {
-    const productName = product;
-    const pageNum = Number(page);
-    const offSetQuery = `
-    SELECT * FROM products 
-    WHERE productName = ? AND isDeleted = false 
-    ORDER BY price ASC 
-    LIMIT 10 OFFSET ?`;
 
+  async findProducts(product:string, page:Number, productId?:number){
+    const productName = product
     //첫 페이지는 가격 0 이상, 이후로는 마지막 가격을 파라미터로 받는다고 가정
     const lastPrice = Number(page);
     const seekQuery = `
-    SELECT * FROM products 
-    WHERE productName = ? AND isDeleted = false AND price > ?
-    ORDER BY price ASC 
-    LIMIT 10`;
-
-    // return this.connectionService.Query(
-    //   offSetQuery, [ productName, pageNum ]
-    // )
-
-    return this.connectionService.Query(seekQuery, [productName, lastPrice]);
+    SELECT productId, productName, image, price, stock FROM products 
+    WHERE price >= ? AND productName = ? AND productId >= ? AND isDeleted = false
+    ORDER BY price, productId
+    LIMIT 20`
+    return this.connectionService.Query(
+      seekQuery, [ lastPrice, productName, productId ]
+    )
+    
   }
 
   async getOrders() {

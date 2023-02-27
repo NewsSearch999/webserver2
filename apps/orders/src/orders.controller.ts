@@ -12,6 +12,7 @@ import { SearchDto } from './dto/search.dto';
 import { deliveryState } from '../../../libs/entity/enum/delivery.enum';
 import { orderState } from '../../../libs/entity/enum/order.enum';
 import { OrdersService } from './orders.service';
+import { IdPipe } from './pipes/id.pipe';
 import { NumberPipe } from './pipes/number.pipe';
 import { StringPipe } from './pipes/string.pipe';
 import { AuthGuard } from '@nestjs/passport';
@@ -49,50 +50,62 @@ export class OrdersController {
   }
 
   /**
-   * 메인 검색. 일단 가격 싼 순서대로 페이지네이션
-   * @param page
-   * @returns
+   * 메인 검색. 가격 오름차순.
+   * 첫 페이지는 page = 1
+   * 이후 페이지부터 page = 오름차순 정렬의 마지막 price, 즉 그 페이지의 가장 비싼 가격
+   * @param price 
+   * @returns 
    */
-  @Get('products/:page')
-  async getProducts(@Param('page', NumberPipe) page: number) {
-    const pageNum = Number(page) - 1;
-    console.log(page);
-    console.log(pageNum);
+  @Get('main/:price/:productId')
+  async getProducts(
+    @Param('price', NumberPipe) price:number,
+    @Param('productId', IdPipe) productId?: number,
+  ) {
+    const cursorPrice = price - 1
 
     //첫 페이지는 가격 0 이상, 이후로는 마지막 가격을 파라미터로 받는다고 가정
-    switch (pageNum) {
-      case 0:
-        return this.ordersService.getProducts(pageNum);
+    switch(cursorPrice)
+    {
+      case 0 :
+      const cursorId = 1
+      return this.ordersService.getProducts(cursorPrice, cursorId);
 
-      default:
-        const lastPrice = Number(page);
-        return this.ordersService.getProducts(lastPrice);
+      default :
+      const lastPrice = price
+      const lastId = productId
+      return this.ordersService.getProducts(lastPrice, lastId);
+
     }
   }
 
   /**
    * 특정 상품 검색
-   * @param product
-   * @param page
-   * @returns
+   * 첫 페이지는 page = 1
+   * 이후 페이지부터 page = 오름차순 정렬의 마지막 price, 즉 그 페이지의 가장 비싼 가격
+   * @param product 
+   * @param page 
+   * @returns 
    */
-  @Get('products/:product/:page')
+  @Get('search/:productname/:price/:productid')
   async findProducts(
-    @Param('product', StringPipe) product: string,
-    @Param('page', NumberPipe) page: number,
-  ) {
-    const pageNum = Number(page) - 1;
-    console.log(page);
-    console.log(pageNum);
+    @Param('productname', StringPipe) productName: string,
+    @Param('price', NumberPipe) price : number,
+    @Param('productId', IdPipe) productId?: number,
+  ){
+    const cursorPrice = price - 1
 
-    //첫 페이지는 가격 0 이상, 이후로는 마지막 가격을 파라미터로 받는다고 가정
-    switch (pageNum) {
-      case 0:
-        return this.ordersService.findProducts(product, pageNum);
-
-      default:
-        const lastPrice = Number(page);
-        return this.ordersService.findProducts(product, lastPrice);
+    //첫 페이지(page=1)는 가격 0 이상, 이후로는 마지막 가격을 파라미터로 받는다고 가정
+    switch(price)
+    {
+      case 0 : 
+      const cursorId = 1
+      return this.ordersService.findProducts(productName, cursorPrice, cursorId)
+    
+      default :
+      const lastPrice = price
+      const lastId = productId
+      return this.ordersService.findProducts(productName, lastPrice, lastId)
+    
     }
   }
 }
