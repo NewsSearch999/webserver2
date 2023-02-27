@@ -1,36 +1,48 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { OrderDto } from './dto/order.dto';
 import { SearchDto } from './dto/search.dto';
-import { deliveryState } from './enum/delivery.enum';
-import { orderState } from './enum/order.enum';
+import { deliveryState } from '../../../libs/entity/enum/delivery.enum';
+import { orderState } from '../../../libs/entity/enum/order.enum';
 import { OrdersService } from './orders.service';
 import { IdPipe } from './pipes/id.pipe';
 import { NumberPipe } from './pipes/number.pipe';
 import { StringPipe } from './pipes/string.pipe';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller()
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-    /**
+  /**
    * 주문생성
-   * @param request 
-   * @returns 
+   * @param request
+   * @returns
    */
+  @UseGuards(AuthGuard())
   @Post()
   async createOrder(@Body() orderDto: OrderDto, @Req() req: any) {
+    const { userId } = req.user; //주문자 ID
     const request = {
       productId: orderDto.productId,
       quantity: orderDto.quantity,
       orderState: orderState.결제대기,
       deliveryState: deliveryState.결제대기,
+      userId: userId,
     };
     return this.ordersService.createOrder(request);
   }
 
   /**
    * 주문조회
-   * @returns 
+   * @returns
    */
   @Get('orders')
   async getOrders() {
@@ -62,10 +74,11 @@ export class OrdersController {
       const lastPrice = price
       const lastId = productId
       return this.ordersService.getProducts(lastPrice, lastId);
+
     }
   }
 
-    /**
+  /**
    * 특정 상품 검색
    * 첫 페이지는 page = 1
    * 이후 페이지부터 page = 오름차순 정렬의 마지막 price, 즉 그 페이지의 가장 비싼 가격
@@ -95,5 +108,4 @@ export class OrdersController {
     
     }
   }
-  
 }

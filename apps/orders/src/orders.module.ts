@@ -3,50 +3,28 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import { ConnectionService } from './connection/connection.service';
-import { Order } from './entity/order.entity';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
-import { Product } from './entity/product.entity';
+import { Order } from 'libs/entity/order.entity';
+import { Product } from 'libs/entity/product.entity';
 import { RmqModule } from '@app/common/rmq/rmq.module';
 import { BILLING_SERVICE } from './constants/service';
+import { DatabaseModule } from 'libs/database/typeorm.module';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from 'apps/auth/src/strategies/jwt.strategy';
+import { UsersModule } from 'apps/auth/src/users/users.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      validationSchema: Joi.object({
-        DB_HOST: Joi.string().required(),
-        DB_USER: Joi.string().required(),
-        DB_PASSWORD: Joi.string().required(),
-        DB_NAME: Joi.string().required(),
-        DB_PORT: Joi.number().required(),
-      }),
-      envFilePath: './apps/orders/.env',
-    }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        return {
-          type: 'mysql',
-          host: configService.get<string>('DB_HOST'),
-          port: +configService.get<number>('DB_PORT'),
-          username: configService.get<string>('DB_USER'),
-          database: configService.get<string>('DB_NAME'),
-          password: configService.get<string>('DB_PASSWORD'),
-          //entities: [__dirname + '/**/*.entity{.ts,.js}'],
-          entities: [Product, Order],
-          synchronize: false,
-          logging: true,
-        };
-      },
-    }),
+    DatabaseModule,
+    UsersModule,
     TypeOrmModule.forFeature([Product, Order]),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     RmqModule.register({
       name: BILLING_SERVICE,
     }),
   ],
   controllers: [OrdersController],
-  providers: [OrdersService, ConnectionService],
+  providers: [OrdersService, ConnectionService, JwtStrategy],
 })
 export class OrdersModule {}
