@@ -2,7 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConnectionService } from './connection/connection.service';
 import { BILLING_SERVICE } from './constants/service';
 import { ClientProxy } from '@nestjs/microservices';
-import { OrderDto } from './dto/order.dto';
 import { lastValueFrom } from 'rxjs';
 
 @Injectable()
@@ -21,10 +20,14 @@ export class OrdersService {
         ]
       ]
     )
-
     return product
   }
 
+  /**
+   * 주문 생성
+   * @param request 
+   * @returns 
+   */
   async createOrder(request) {
 
     const createQuery = `INSERT INTO orders (productId, quantity, price, orderState, deliveryState) values (?)`;
@@ -53,31 +56,69 @@ export class OrdersService {
     }
   }
 
-  async getProducts(page){
-    const pageNum = Number(page) - 1
+    /**
+   * 메인 상품 검색. 일단 가격 싼 순서대로 페이지네이션
+   * @param page 
+   * @returns 
+   */
+  async getProducts(page : number){
+    const pageNum = Number(page)
     const offSetQuery = `
     SELECT * FROM products 
     WHERE isDeleted = false 
     ORDER BY price ASC 
     LIMIT 10 OFFSET ?`
 
+    const lastPrice = Number(page)
+    const seekQuery = `
+    SELECT * FROM products
+    WHERE isDeleted = false AND price > ?
+    ORDER BY price ASC
+    LIMIT 10`
+
+    // return this.connectionService.Query(
+    //   offSetQuery, [ pageNum ]
+    // )
+
     return this.connectionService.Query(
-      offSetQuery, [ pageNum ]
+      seekQuery, [ lastPrice ]
     )
   }
 
+
+  /**
+   * 특정 상품 검색
+   * @param product 
+   * @param page 
+   * @returns 
+   */
   async findProducts(product:string, page:Number){
     const productName = product
-    const pageNum = Number(page) - 1
+    const pageNum = Number(page)
     const offSetQuery = `
     SELECT * FROM products 
     WHERE productName = ? AND isDeleted = false 
     ORDER BY price ASC 
     LIMIT 10 OFFSET ?`
 
+
+    //첫 페이지는 가격 0 이상, 이후로는 마지막 가격을 파라미터로 받는다고 가정
+    const lastPrice = Number(page)
+    const seekQuery = `
+    SELECT * FROM products 
+    WHERE productName = ? AND isDeleted = false AND price > ?
+    ORDER BY price ASC 
+    LIMIT 10`
+
+
+    // return this.connectionService.Query(
+    //   offSetQuery, [ productName, pageNum ]
+    // )
+
     return this.connectionService.Query(
-      offSetQuery, [ productName, pageNum ]
+      seekQuery, [ productName, lastPrice]
     )
+    
   }
 
   async getOrders() {

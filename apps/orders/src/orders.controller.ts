@@ -4,10 +4,18 @@ import { SearchDto } from './dto/search.dto';
 import { deliveryState } from './enum/delivery.enum';
 import { orderState } from './enum/order.enum';
 import { OrdersService } from './orders.service';
+import { NumberPipe } from './pipes/number.pipe';
+import { StringPipe } from './pipes/string.pipe';
 
 @Controller()
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
+
+    /**
+   * 주문생성
+   * @param request 
+   * @returns 
+   */
   @Post()
   async createOrder(@Body() orderDto: OrderDto, @Req() req: any) {
     const request = {
@@ -19,6 +27,10 @@ export class OrdersController {
     return this.ordersService.createOrder(request);
   }
 
+  /**
+   * 주문조회
+   * @returns 
+   */
   @Get('orders')
   async getOrders() {
     return this.ordersService.getOrders();
@@ -31,18 +43,51 @@ export class OrdersController {
    */
   @Get('products/:page')
   async getProducts(
-    @Param('page') page: SearchDto
+    @Param('page', NumberPipe) page:number
   ) {
-    return this.ordersService.getProducts(page);
+    const pageNum = Number(page) - 1
+    console.log(page)
+    console.log(pageNum)
+
+    //첫 페이지는 가격 0 이상, 이후로는 마지막 가격을 파라미터로 받는다고 가정
+    switch(pageNum)
+    {
+      case 0 :
+      return this.ordersService.getProducts(pageNum);
+
+      default :
+      const lastPrice = Number(page)
+      return this.ordersService.getProducts(lastPrice);
+    }
   }
 
+    /**
+   * 특정 상품 검색
+   * @param product 
+   * @param page 
+   * @returns 
+   */
   @Get('products/:product/:page')
   async findProducts(
-    @Param() request: SearchDto
+    @Param('product', StringPipe) product: string,
+    @Param('page', NumberPipe) page : number,
   ){
-    const product = request.product
-    const page = request.page
-    return this.ordersService.findProducts(product, page)
+
+    const pageNum = Number(page) - 1
+    console.log(page)
+    console.log(pageNum)
+
+    //첫 페이지는 가격 0 이상, 이후로는 마지막 가격을 파라미터로 받는다고 가정
+    switch(pageNum)
+    {
+      case 0 : 
+      return this.ordersService.findProducts(product, pageNum)
+    
+      default :
+      const lastPrice = Number(page)
+      return this.ordersService.findProducts(product, lastPrice)
+    
+    }
   }
   
 }
