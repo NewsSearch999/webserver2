@@ -24,7 +24,7 @@ const entityPath = path.join(__dirname, 'libs/entity/**/*.entity.ts');
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         entities: ['libs/entity/**/*.entity.ts', User],
-        synchronize: true,
+        synchronize: false,
         logging: true,
       }),
       inject: [ConfigService],
