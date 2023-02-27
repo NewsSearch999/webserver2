@@ -53,8 +53,36 @@ export class OrdersService {
     }
   }
 
+  async getProducts(page){
+    const pageNum = Number(page) - 1
+    const offSetQuery = `
+    SELECT * FROM products 
+    WHERE isDeleted = false 
+    ORDER BY price ASC 
+    LIMIT 10 OFFSET ?`
+
+    return this.connectionService.Query(
+      offSetQuery, [ pageNum ]
+    )
+  }
+
+  async findProducts(product:string, page:Number){
+    const productName = product
+    const pageNum = Number(page) - 1
+    const offSetQuery = `
+    SELECT * FROM products 
+    WHERE productName = ? AND isDeleted = false 
+    ORDER BY price ASC 
+    LIMIT 10 OFFSET ?`
+
+    return this.connectionService.Query(
+      offSetQuery, [ productName, pageNum ]
+    )
+  }
+
   async getOrders() {
-    const searchQuery = `SELECT * FROM Orders`;
+    const searchQuery = `
+    SELECT * FROM Orders`;
     return this.connectionService.Query(
       searchQuery, []
     );
