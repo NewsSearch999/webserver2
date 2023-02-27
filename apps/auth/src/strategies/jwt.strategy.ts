@@ -12,22 +12,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly usersService: UsersService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (request: any) => {
-          return request?.Authentication;
-        },
-      ]),
       secretOrKey: configService.get('JWT_SECRET'),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: true,
     });
   }
 
-  // async validate({ userId }: TokenPayload) {
-  //   try {
-  //     return await this.usersService.getUser({
-  //       _id: new Types.ObjectId(userId),
-  //     });
-  //   } catch (err) {
-  //     throw new UnauthorizedException();
-  //   }
-  // }
+  async validate({ userId }: TokenPayload) {
+    try {
+      console.log('//////////here///////////');
+      return await this.usersService.getUser(userId);
+    } catch (err) {
+      throw new UnauthorizedException();
+    }
+  }
 }

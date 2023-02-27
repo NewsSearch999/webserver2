@@ -10,6 +10,7 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { User } from 'apps/auth/src/users/user.entity';
 import { UsersModule } from './users/users.module';
 import { EntityService } from 'y/entity';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { EntityService } from 'y/entity';
       logging: true,
     }),
     TypeOrmModule.forFeature([User]),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
@@ -49,5 +51,6 @@ import { EntityService } from 'y/entity';
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy, EntityService],
+  exports: [JwtStrategy, PassportModule],
 })
 export class AuthModule {}

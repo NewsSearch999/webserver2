@@ -15,7 +15,7 @@ export class User {
   @Column('varchar', { length: 50 })
   email: string;
 
-  @Column('varchar', { length: 50 })
+  @Column('varchar')
   password: string;
   //등급 bronze,silver,gold
   @Column({ default: 'bronze' }) //enum설정보류
