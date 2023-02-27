@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { OrderDto } from './dto/order.dto';
 import { SearchDto } from './dto/search.dto';
 import { deliveryState } from '../../../libs/entity/enum/delivery.enum';
@@ -6,6 +14,7 @@ import { orderState } from '../../../libs/entity/enum/order.enum';
 import { OrdersService } from './orders.service';
 import { NumberPipe } from './pipes/number.pipe';
 import { StringPipe } from './pipes/string.pipe';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller()
 export class OrdersController {
@@ -16,6 +25,7 @@ export class OrdersController {
    * @param request
    * @returns
    */
+  @UseGuards(AuthGuard())
   @Post()
   async createOrder(@Body() orderDto: OrderDto, @Req() req: any) {
     const request = {
