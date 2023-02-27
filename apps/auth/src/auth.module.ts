@@ -22,7 +22,7 @@ import { DatabaseModule } from 'libs/database/typeorm.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: `${configService.get('JWT_EXPIRATION')}`,
+          expiresIn: `${configService.get('JWT_EXPIRATION')}s`,
         },
       }),
       inject: [ConfigService],
