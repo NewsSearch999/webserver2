@@ -7,6 +7,6 @@ export class DummyController {
 
   @Post()
   createProdcuts() {
-    return this.dummyService.createMillion();
+    return this.dummyService.createTwoMillion();
   }
 }

@@ -22,41 +22,90 @@ export class DummyService {
         ],
       ]);
 
-      await this.sleep(2);
     }
 
 
   }
 
-  async createMillion(){
+  async createTwoMillion(){
     await this.createHundredThousands()
+    await this.sleep(2);
     console.log('10만')
 
     await this.createHundredThousands()
+    await this.sleep(2);
     console.log('20만')
 
     await this.createHundredThousands()
+    await this.sleep(2);
     console.log('30만')
 
     await this.createHundredThousands()
+    await this.sleep(2);
     console.log('40만')
 
     await this.createHundredThousands()
+    await this.sleep(2);
     console.log('50만')
 
     await this.createHundredThousands()
+    await this.sleep(2);
     console.log('60만')
 
     await this.createHundredThousands()
+    await this.sleep(2);
     console.log('70만')
 
     await this.createHundredThousands()
+    await this.sleep(2);
     console.log('80만')
 
     await this.createHundredThousands()
+    await this.sleep(2);
     console.log('90만')
 
     await this.createHundredThousands()
+    await this.sleep(2);
+    console.log('100만')
+
+    await this.createHundredThousands()
+    await this.sleep(2);
+    console.log('10만')
+
+    await this.createHundredThousands()
+    await this.sleep(2);
+    console.log('20만')
+
+    await this.createHundredThousands()
+    await this.sleep(2);
+    console.log('30만')
+
+    await this.createHundredThousands()
+    await this.sleep(2);
+    console.log('40만')
+
+    await this.createHundredThousands()
+    await this.sleep(2);
+    console.log('50만')
+
+    await this.createHundredThousands()
+    await this.sleep(2);
+    console.log('60만')
+
+    await this.createHundredThousands()
+    await this.sleep(2);
+    console.log('70만')
+
+    await this.createHundredThousands()
+    await this.sleep(2);
+    console.log('80만')
+
+    await this.createHundredThousands()
+    await this.sleep(2);
+    console.log('90만')
+
+    await this.createHundredThousands()
+    await this.sleep(2);
     console.log('100만')
   }
 
