@@ -1,23 +1,32 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { deliveryState } from "../enum/delivery.enum";
 import { orderState } from "../enum/order.enum";
+import { Product } from "./product.entity";
 
 @Entity('orders')
 export class Order {
   
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ type: 'int', name: 'orderId'})
   orderId: number;
 
-  @Column()
-  productId: number;
+  @ManyToOne( () => Product, (product : Product) => product.order, {
+    eager: true,
+    cascade: ['update'],
+    onDelete: 'CASCADE'
+  })
+  @JoinColumn({
+    name: 'productId',
+    referencedColumnName: 'productId'
+  })
+  product: Promise<Product>;
 
   // @Column()
   // userId: number;
 
-  @Column()
+  @Column('smallint', {name: 'quantity'})
   quantity: number;
 
-  @Column()
+  @Column('smallint', {name: 'price'})
   price: number;
 
   @Column({

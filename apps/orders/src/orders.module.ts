@@ -40,20 +40,6 @@ import { BILLING_SERVICE } from './constants/service';
           logging: true,
         };
       },
-      // type: 'mysql',
-      // host: process.env.DB_HOST,
-      // port: +process.env.DB_PORT,
-      // username: process.env.DB_USER,
-      // password: process.env.DB_PASSWORD,
-      // database: process.env.DB_NAME,
-      // entities: [
-      //   Product,
-      //   Order
-      // ],
-      // keepConnectionAlive: true,
-      // // charset: 'utf8mb4',
-      // synchronize: false,
-      // logging: true,
     }),
     TypeOrmModule.forFeature([Product, Order]),
     RmqModule.register({
