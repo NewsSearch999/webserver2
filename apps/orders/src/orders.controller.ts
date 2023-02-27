@@ -28,11 +28,13 @@ export class OrdersController {
   @UseGuards(AuthGuard())
   @Post()
   async createOrder(@Body() orderDto: OrderDto, @Req() req: any) {
+    const { userId } = req.user; //주문자 ID
     const request = {
       productId: orderDto.productId,
       quantity: orderDto.quantity,
       orderState: orderState.결제대기,
       deliveryState: deliveryState.결제대기,
+      userId: userId,
     };
     return this.ordersService.createOrder(request);
   }
