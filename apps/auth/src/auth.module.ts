@@ -7,36 +7,15 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
-import { User } from 'apps/auth/src/users/user.entity';
+import { User } from 'libs/entity/user.entity';
 import { UsersModule } from './users/users.module';
-import { EntityService } from 'y/entity';
 import { PassportModule } from '@nestjs/passport';
+import { DatabaseModule } from 'libs/database/typeorm.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      validationSchema: Joi.object({
-        DB_HOST: Joi.string().required(),
-        DB_USER: Joi.string().required(),
-        DB_PASSWORD: Joi.number().required(),
-        DB_NAME: Joi.string().required(),
-        DB_PORT: Joi.number().required(),
-      }),
-      envFilePath: './apps/auth/.env',
-    }),
+    DatabaseModule,
     UsersModule,
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.DB_HOST,
-      port: 3306,
-      username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      entities: [User],
-      synchronize: true,
-      logging: true,
-    }),
     TypeOrmModule.forFeature([User]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
@@ -50,7 +29,7 @@ import { PassportModule } from '@nestjs/passport';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy, EntityService],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
   exports: [JwtStrategy, PassportModule],
 })
 export class AuthModule {}

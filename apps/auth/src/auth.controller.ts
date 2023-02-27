@@ -5,7 +5,7 @@ import { AuthService } from './auth.service';
 import { CurrentUser } from './current-user.decorator';
 import JwtAuthGuard from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { User } from 'apps/auth/src/users/user.entity';
+import { User } from 'libs/entity/user.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { UserRequest } from './users/dto/create-user.request';
 
