@@ -28,15 +28,11 @@ export class BillingService {
       /**주문 상태 업데이트 */
       const orderUpdateQuery = `
         UPDATE orders SET orderState = ?, deliveryState = ?
-        WHERE orderId = ?`;
+        WHERE orderId = ?
+        `;
 
       /**남은 수량 */
       const leftQuantity = orderData.stock - orderData.quantity;
-      console.log(leftQuantity);
-
-      console.log('////////////');
-      console.log(orderData.stock, orderData.quantity);
-      console.log('////////////');
 
       /**수량 업데이트 */
       await connection.query(productUpdateQuery, [
