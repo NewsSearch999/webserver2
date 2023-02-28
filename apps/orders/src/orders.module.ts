@@ -1,43 +1,30 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import { ConnectionService } from './connection/connection.service';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
-import { Product } from './product.entity';
+import { Order } from 'libs/entity/order.entity';
+import { Product } from 'libs/entity/product.entity';
+import { RmqModule } from '@app/common/rmq/rmq.module';
+import { BILLING_SERVICE } from './constants/service';
+import { DatabaseModule } from 'libs/database/typeorm.module';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from 'apps/auth/src/strategies/jwt.strategy';
+import { UsersModule } from 'apps/auth/src/users/users.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      validationSchema: Joi.object({
-        DB_HOST: Joi.string().required(),
-        DB_USER: Joi.string().required(),
-        DB_PASSWORD: Joi.number().required(),
-        DB_NAME: Joi.string().required(),
-        DB_PORT: Joi.number().required(),
-      }),
-      envFilePath: './apps/orders/.env',
+    DatabaseModule,
+    UsersModule,
+    TypeOrmModule.forFeature([Product, Order]),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    RmqModule.register({
+      name: BILLING_SERVICE,
     }),
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.DB_HOST,
-      port: +process.env.DB_PORT,
-      username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      entities: [
-        Product
-      ],
-      // keepConnectionAlive: true,
-      // charset: 'utf8mb4',
-      synchronize: false,
-      logging: true,
-    }),
-    TypeOrmModule.forFeature([Product]), 
   ],
   controllers: [OrdersController],
-  providers: [OrdersService, ConnectionService],
+  providers: [OrdersService, ConnectionService, JwtStrategy],
 })
 export class OrdersModule {}
