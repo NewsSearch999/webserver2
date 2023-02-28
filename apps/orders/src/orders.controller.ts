@@ -43,9 +43,9 @@ export class OrdersController {
 
   /**
    * 주문결제
-   * @param orderId 
-   * @param req 
-   * @returns 
+   * @param orderId
+   * @param req
+   * @returns
    */
   @UseGuards(AuthGuard())
   @Put('orders/:orderid')

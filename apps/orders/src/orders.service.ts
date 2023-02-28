@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConnectionService } from './connection/connection.service';
-import { BILLING_SERVICE } from './constants/service';
+import { BILLING_SERVICE, PAYMENT_SERVICE } from './constants/service';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom, throwError } from 'rxjs';
 import { orderState } from '@app/common/entity/enum/order.enum';
@@ -16,6 +16,7 @@ export class OrdersService {
   constructor(
     private readonly connectionService: ConnectionService,
     @Inject(BILLING_SERVICE) private billingClient: ClientProxy,
+    @Inject(PAYMENT_SERVICE) private paymentClient: ClientProxy
   ) {}
 
   async findProductByPK(productId) {
@@ -90,7 +91,7 @@ export class OrdersService {
 
     /**메세지큐(결제 데이터 전송)*/
     await lastValueFrom(
-      this.billingClient.emit('order_payment', {
+      this.paymentClient.emit('order_payment', {
         orderData,
       }),
     );
