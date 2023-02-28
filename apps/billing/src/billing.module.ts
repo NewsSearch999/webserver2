@@ -4,6 +4,7 @@ import { BillingController } from './billing.controller';
 import { BillingService } from './billing.service';
 import * as Joi from 'joi';
 import { RmqModule } from '@app/common/rmq/rmq.module';
+import { ConnectionService } from './connection/connection.service';
 
 @Module({
   imports: [
@@ -18,6 +19,6 @@ import { RmqModule } from '@app/common/rmq/rmq.module';
     RmqModule
   ],
   controllers: [BillingController],
-  providers: [BillingService],
+  providers: [BillingService, ConnectionService],
 })
 export class BillingModule {}
