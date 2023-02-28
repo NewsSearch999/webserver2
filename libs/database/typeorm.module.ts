@@ -1,21 +1,22 @@
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Module } from '@nestjs/common';
+
 import * as path from 'path';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User } from '@app/common/entity/user.entity';
+import { join } from 'path';
 import { Product } from '@app/common/entity/product.entity';
 import { Order } from '@app/common/entity/order.entity';
 
 const entityPath = path.join(__dirname, 'libs/entity/**/*.entity.ts');
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: './libs/.libs.env',
-    }),
     TypeOrmModule.forRootAsync({
       imports: [
-        ConfigModule
+        ConfigModule.forRoot({
+          isGlobal: true,
+          envFilePath: './libs/.libs.env',
+        }),
       ],
       useFactory: (configService: ConfigService) => ({
         type: 'mysql',
@@ -26,7 +27,7 @@ const entityPath = path.join(__dirname, 'libs/entity/**/*.entity.ts');
         database: configService.get('DB_NAME'),
         entities: [entityPath, User, Product, Order],
         synchronize: false,
-        logging: true,
+        logging: false,
       }),
       inject: [ConfigService],
     }),

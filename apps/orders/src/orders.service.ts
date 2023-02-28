@@ -16,12 +16,12 @@ export class OrdersService {
   constructor(
     private readonly connectionService: ConnectionService,
     @Inject(BILLING_SERVICE) private billingClient: ClientProxy,
-    @Inject(PAYMENT_SERVICE) private paymentClient: ClientProxy
+    @Inject(PAYMENT_SERVICE) private paymentClient: ClientProxy,
   ) {}
 
   async findProductByPK(productId) {
     const searchQuery = `SELECT * FROM products WHERE productId = (?)`;
-    const product = await this.connectionService.Query(searchQuery, [
+    const product = await this.connectionService.slaveQuery(searchQuery, [
       [productId],
     ]);
     return product;
@@ -37,7 +37,7 @@ export class OrdersService {
     try {
       const product = await this.findProductByPK(request.productId);
       if (!product[0]) throw new HttpException('상품정보가 없습니다', 403);
-      const order = await this.connectionService.Query(createQuery, [
+      const order = await this.connectionService.masterQuery(createQuery, [
         [
           request.productId,
           request.quantity,
@@ -74,7 +74,7 @@ export class OrdersService {
     `;
 
     /**주문 정보 조회 */
-    const row = await this.connectionService.Query(seekQuery, [orderId]);
+    const row = await this.connectionService.slaveQuery(seekQuery, [orderId]);
     const orderData = row[0];
 
     /**주문자 확인 */
@@ -112,7 +112,7 @@ export class OrdersService {
     ORDER BY price, productId
     LIMIT 20`;
 
-    return this.connectionService.Query(seekQuery, [price, productId]);
+    return this.connectionService.slaveQuery(seekQuery, [price, productId]);
   }
 
   /**
@@ -131,7 +131,7 @@ export class OrdersService {
     WHERE price >= ? AND productName = ? AND productId >= ? AND isDeleted = false
     ORDER BY price, productId
     LIMIT 20`;
-    return this.connectionService.Query(seekQuery, [
+    return this.connectionService.slaveQuery(seekQuery, [
       lastPrice,
       productName,
       productId,
@@ -142,6 +142,6 @@ export class OrdersService {
   async getOrders() {
     const searchQuery = `
     SELECT * FROM Orders`;
-    return this.connectionService.Query(searchQuery, []);
+    return this.connectionService.slaveQuery(searchQuery, []);
   }
 }

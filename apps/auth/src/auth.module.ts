@@ -9,7 +9,7 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { User } from '@app/common/entity/user.entity';
 import { UsersModule } from './users/users.module';
 import { PassportModule } from '@nestjs/passport';
-import { DatabaseModule } from '@app/common/database/typeorm.module';
+import { DatabaseModule } from '@app/common/database/Database.module';
 
 @Module({
   imports: [
