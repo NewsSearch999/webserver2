@@ -7,6 +7,11 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  /**
+   * 회원가입
+   * @param request email, password
+   * @returns 
+   */
   @Post('/signup')
   async createUser(@Body() request: UserRequest) {
     return this.usersService.createUser(request);

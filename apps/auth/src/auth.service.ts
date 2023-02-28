@@ -39,6 +39,11 @@ export class AuthService {
   //   });
   // }
 
+  /**
+   * 로그인 
+   * @param request email, password
+   * @returns 
+   */
   async login(request: UserRequest): Promise<{ accessToken: string }> {
     const { email, password } = request;
     const exist = await this.users.findOne({

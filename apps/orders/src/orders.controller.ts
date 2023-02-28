@@ -24,11 +24,11 @@ export class OrdersController {
 
   /**
    * 주문생성
-   * @param request
+   * @body productId, quantity
    * @returns
    */
   @UseGuards(AuthGuard())
-  @Post()
+  @Post('orders')
   async createOrder(@Body() orderDto: OrderDto, @Req() req) {
     const { userId } = req.user; //주문자 ID
     const request = {
@@ -41,11 +41,16 @@ export class OrdersController {
     return this.ordersService.createOrder(request);
   }
 
-  /**주문 결제 */
+  /**
+   * 주문결제
+   * @param orderId 
+   * @param req 
+   * @returns 
+   */
   @UseGuards(AuthGuard())
-  @Put('payment/:orderId')
+  @Put('orders/:orderid')
   async paymentOrder(
-    @Param('orderId', NumberPipe) orderId: number,
+    @Param('orderid', NumberPipe) orderId: number,
     @Req() req,
   ) {
     const { userId } = req.user;
@@ -68,10 +73,10 @@ export class OrdersController {
    * @param price
    * @returns
    */
-  @Get('main/:price/:productId')
+  @Get('main/:price/:productid')
   async getProducts(
     @Param('price', NumberPipe) price: number,
-    @Param('productId', IdPipe) productId?: number,
+    @Param('productid', IdPipe) productId?: number,
   ) {
     const cursorPrice = price - 1;
 
@@ -92,15 +97,16 @@ export class OrdersController {
    * 특정 상품 검색
    * 첫 페이지는 page = 1
    * 이후 페이지부터 page = 오름차순 정렬의 마지막 price, 즉 그 페이지의 가장 비싼 가격
-   * @param product
-   * @param page
+   * @param productName
+   * @param price
+   * @param productId
    * @returns
    */
   @Get('search/:productname/:price/:productid')
   async findProducts(
     @Param('productname', StringPipe) productName: string,
     @Param('price', NumberPipe) price: number,
-    @Param('productId', IdPipe) productId?: number,
+    @Param('productid', IdPipe) productId?: number,
   ) {
     const cursorPrice = price - 1;
 

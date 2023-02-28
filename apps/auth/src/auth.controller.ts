@@ -8,6 +8,11 @@ import { UserRequest } from './users/dto/create-user.request';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+/**
+ * 로그인
+ * @param request  
+ * @returns 
+ */
   @Post('/login')
   async login(@Body() request: UserRequest): Promise<{ accessToken: string }> {
     return this.authService.login(request);
