@@ -1,6 +1,6 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
-import { deliveryState } from 'libs/entity/enum/delivery.enum';
-import { orderState } from 'libs/entity/enum/order.enum';
+import { deliveryState } from '@app/common/entity/enum/delivery.enum';
+import { orderState } from '@app/common/entity/enum/order.enum';
 import { ConnectionService } from './connection/connection.service';
 
 @Injectable()

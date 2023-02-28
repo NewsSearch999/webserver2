@@ -2,9 +2,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Module } from '@nestjs/common';
 import * as path from 'path';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { User } from 'libs/entity/user.entity';
-import { Product } from 'libs/entity/product.entity';
-import { Order } from 'libs/entity/order.entity';
+import { User } from '@app/common/entity/user.entity';
+import { Product } from '@app/common/entity/product.entity';
+import { Order } from '@app/common/entity/order.entity';
 
 const entityPath = path.join(__dirname, 'libs/entity/**/*.entity.ts');
 @Module({

@@ -9,7 +9,7 @@ import { ConnectionService } from './connection/connection.service';
 import { BILLING_SERVICE } from './constants/service';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom, throwError } from 'rxjs';
-import { orderState } from 'libs/entity/enum/order.enum';
+import { orderState } from '@app/common/entity/enum/order.enum';
 
 @Injectable()
 export class OrdersService {

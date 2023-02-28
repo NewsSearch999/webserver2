@@ -9,5 +9,6 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   await app.startAllMicroservices();
   await app.listen(configService.get('AUTH_PORT'));
+  console.log(`${configService.get('AUTH_PORT')}만큼 사랑해`)
 }
 bootstrap();
