@@ -67,7 +67,8 @@ export class OrdersService {
   async paymentOrder(orderId: number, userId: number) {
     /**주문정보 조회 */
     const seekQuery = `
-    SELECT orders.orderId,orders.userId,orders.productId,orders.price,orders.orderState,orders.quantity,products.stock,products.productId FROM orders
+    SELECT orders.orderId,orders.userId,orders.productId,orders.price,orders.orderState,orders.quantity,products.stock,products.productId,products.productName 
+    FROM orders
     LEFT OUTER JOIN products
     ON orders.productId = products.productId
     WHERE orderId = ?
@@ -124,13 +125,27 @@ export class OrdersService {
         orderId,
       ]);
 
-      //메세지큐(결제 상태,결제 금액전송)
+      const paymentData = {
+        orderId: orderData.orderId,
+        productId: orderData.productId,
+        productName: orderData.productName,
+        quantity: orderData.quantity,
+        price: orderData.price,
+        payment: orderData.price * orderData.quantity,
+      };
+
+      /**메세지큐(결제 데이터 전송)*/
+      await lastValueFrom(
+        this.billingClient.emit('order_payment', {
+          paymentData,
+        }),
+      );
 
       /**트랜잭션 커밋 */
       await connection.commit();
       await connection.release();
 
-      return orderData;
+      return paymentData;
     } catch (e) {
       /**트랜잭션 롤백 */
       await connection.query('ROLLBACK');
