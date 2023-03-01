@@ -9,7 +9,7 @@ export class DummyService {
   async createHundredThousands() {
     const createQuery = `INSERT INTO products (productName, description, image, price, stock) values (?)`;
 
-      for (let i = 0; i <= 100000; i++) {
+    for (let i = 0; i <= 100000; i++) {
       let product = createRandomProduct();
 
       await this.connectionService.Query(createQuery, [
@@ -21,96 +21,92 @@ export class DummyService {
           product.stock,
         ],
       ]);
-
     }
-
-
   }
 
-  async createTwoMillion(){
-    await this.createHundredThousands()
+  async createTwoMillion() {
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('10만')
+    console.log('10만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('20만')
+    console.log('20만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('30만')
+    console.log('30만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('40만')
+    console.log('40만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('50만')
+    console.log('50만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('60만')
+    console.log('60만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('70만')
+    console.log('70만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('80만')
+    console.log('80만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('90만')
+    console.log('90만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('100만')
+    console.log('100만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('10만')
+    console.log('10만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('20만')
+    console.log('20만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('30만')
+    console.log('30만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('40만')
+    console.log('40만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('50만')
+    console.log('50만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('60만')
+    console.log('60만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('70만')
+    console.log('70만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('80만')
+    console.log('80만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('90만')
+    console.log('90만');
 
-    await this.createHundredThousands()
+    await this.createHundredThousands();
     await this.sleep(2);
-    console.log('100만')
+    console.log('100만');
   }
 
-
-  sleep(sec: number){
-    return new Promise(resolve => setTimeout(resolve, sec * 1000))
+  sleep(sec: number) {
+    return new Promise((resolve) => setTimeout(resolve, sec * 1000));
   }
 }

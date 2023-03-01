@@ -3,13 +3,10 @@ import { BillingController } from './billing.controller';
 import { BillingService } from './billing.service';
 import { RmqModule } from '@app/common/rmq/rmq.module';
 import { ConnectionService } from './connection/connection.service';
-import { DatabaseModule } from '@app/common/database/typeorm.module';
+import { DatabaseModule } from '@app/common/database/Database.module';
 
 @Module({
-  imports: [
-    DatabaseModule,
-    RmqModule,
-  ],
+  imports: [DatabaseModule, RmqModule],
   controllers: [BillingController],
   providers: [BillingService, ConnectionService],
 })

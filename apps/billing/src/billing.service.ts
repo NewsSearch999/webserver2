@@ -14,7 +14,8 @@ export class BillingService {
 
   /**결제 트랜잭션 */
   async payment({ orderData }) {
-    const connection = await this.connectionService.connection.getConnection();
+    const connection =
+      await this.connectionService.masterConnection.getConnection();
     try {
       /**트랜잭션 시작 */
       await connection.query('START TRANSACTION');
