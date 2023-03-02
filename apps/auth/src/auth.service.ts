@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
@@ -37,6 +41,8 @@ export class AuthService {
       const payload = { userId: exist.userId };
       const accessToken = await this.jwtService.sign(payload);
       return { accessToken };
+    } else {
+      throw new HttpException('잘못된 비밀번호 입니다', 403);
     }
   }
 
