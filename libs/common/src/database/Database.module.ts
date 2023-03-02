@@ -43,7 +43,7 @@ const entityPath = path.join(__dirname, 'libs/entity/**/*.entity.ts');
             },
           ],
         },
-        synchronize: false,
+        synchronize: true,
         logging: false,
       }),
       inject: [ConfigService],

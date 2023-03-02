@@ -2,6 +2,7 @@ version: '2'
 
 services:
   orders:
+    image: 895940361152.dkr.ecr.ap-northeast-2.amazonaws.com/orderproject:orders
     build:
       context: .
       dockerfile: ./apps/orders/Dockerfile
@@ -15,6 +16,7 @@ services:
       - '3000:3000' 
 
   billing:
+    image: 895940361152.dkr.ecr.ap-northeast-2.amazonaws.com/orderproject:billing
     build:
       context: .
       dockerfile: ./apps/billing/Dockerfile
@@ -26,6 +28,7 @@ services:
       - /usr/src/app/node_modules
 
   auth:
+    image: 895940361152.dkr.ecr.ap-northeast-2.amazonaws.com/orderproject:auth
     build:
       context: .
       dockerfile: ./apps/auth/Dockerfile
