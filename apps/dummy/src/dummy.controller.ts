@@ -5,8 +5,13 @@ import { DummyService } from './dummy.service';
 export class DummyController {
   constructor(private readonly dummyService: DummyService) {}
 
-  @Post()
+  @Post('products')
   createProdcuts() {
     return this.dummyService.createTwoMillion();
+  }
+
+  @Post('users')
+  createUsers() {
+    return this.dummyService.createThousandUsers();
   }
 }
