@@ -8,6 +8,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
+    "web-start": "cd apps/web && npm start",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -46,6 +47,7 @@
     "class-validator": "^0.14.0",
     "config": "^3.3.9",
     "cookie-parser": "^1.4.6",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.0.3",
     "joi": "^17.8.1",
     "mysql2": "^3.1.2",
