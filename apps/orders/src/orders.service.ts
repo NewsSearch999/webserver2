@@ -139,9 +139,12 @@ export class OrdersService {
   }
 
   /**주문 조회 */
-  async getOrders() {
+  async getOrders(userId: number) {
     const searchQuery = `
-    SELECT * FROM Orders`;
-    return this.connectionService.slaveQuery(searchQuery, []);
+    SELECT orderId,stock,products.price,quantity,productName,createdAt,orderState,deliveryState,image FROM orders
+    LEFT OUTER JOIN products
+    ON orders.productId = products.productId
+    WHERE orders.userId = ?`;
+    return this.connectionService.slaveQuery(searchQuery, [userId]);
   }
 }

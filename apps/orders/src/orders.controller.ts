@@ -61,9 +61,11 @@ export class OrdersController {
    * 주문조회
    * @returns
    */
+  @UseGuards(AuthGuard())
   @Get('orders')
-  async getOrders() {
-    return this.ordersService.getOrders();
+  async getOrders(@Req() req) {
+    const { userId } = req.user;
+    return this.ordersService.getOrders(userId);
   }
 
   /**
