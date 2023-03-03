@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -22,5 +22,10 @@ export class AuthController {
   @UseGuards(AuthGuard())
   async test(@Req() req) {
     console.log(req);
+  }
+
+  @Get('/')
+  healthCheck(){
+    console.log('auth app healthcheck')
   }
 }

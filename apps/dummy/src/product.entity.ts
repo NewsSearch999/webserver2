@@ -5,6 +5,11 @@ export class Product {
   @Column()
   productName: string;
 
+  @Column({
+    default:1
+  })
+  userId: number;
+
   @Column()
   description: string;
 

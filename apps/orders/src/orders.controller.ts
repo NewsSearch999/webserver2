@@ -126,4 +126,9 @@ export class OrdersController {
         return this.ordersService.findProducts(productName, lastPrice, lastId);
     }
   }
+
+  @Get('/')
+  healthCheck(){
+    console.log('orders app healthcheck')
+  }
 }
