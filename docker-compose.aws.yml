@@ -42,6 +42,6 @@ services:
       - '3001:3001'            
 
   rabbitmq:
-    image: rabbitmq
+    image: 895940361152.dkr.ecr.ap-northeast-2.amazonaws.com/orderproject:rabbitmq
     ports:
     - '5672:5672'     
