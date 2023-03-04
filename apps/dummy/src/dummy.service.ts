@@ -22,7 +22,7 @@ export class DummyService {
   }
 
   async createHundredThousands() {
-    const createQuery = `INSERT INTO products (productName, description, image, price, stock) values (?)`;
+    const createQuery = `INSERT INTO products (productName, description, image, price, stock, userId, isDeleted) values (?)`;
 
     for (let i = 0; i <= 100000; i++) {
       let product = createRandomProduct();
@@ -34,6 +34,8 @@ export class DummyService {
           product.image,
           product.price,
           product.stock,
+          product.userId,
+          false
         ],
       ]);
     }

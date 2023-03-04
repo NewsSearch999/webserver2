@@ -21,19 +21,7 @@ services:
     command: npm run start:dev billing
     volumes:
       - .:/usr/src/app
-      - /usr/src/app/node_modules
-
-  auth:
-    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:auth
-    build:
-      context: .
-      dockerfile: ./apps/auth/Dockerfile
-    command: npm run start:dev auth
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    ports:
-      - '3001:3001'            
+      - /usr/src/app/node_modules    
 
   # rabbitmq:
   #   image: ${ECR_REGISTRY}/rabbitmq:latest

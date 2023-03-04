@@ -23,20 +23,7 @@ services:
     #   - ./libs/libs.env
     volumes:
       - .:/usr/src/app
-      - /usr/src/app/node_modules
-
-  auth:
-    build:
-      context: .
-      dockerfile: ./apps/auth/Dockerfile
-    command: npm run start:dev auth
-    # env_file:
-    #   - ./libs/libs.env
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    ports:
-      - '3001:3001'            
+      - /usr/src/app/node_modules    
 
   rabbitmq:
     image: rabbitmq

@@ -24,8 +24,4 @@ export class AuthController {
     console.log(req);
   }
 
-  @Get('/')
-  healthCheck(){
-    console.log('auth app healthcheck')
-  }
 }

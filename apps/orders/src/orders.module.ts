@@ -11,11 +11,13 @@ import { RmqModule } from '@app/common/rmq/rmq.module';
 import { BILLING_SERVICE, PAYMENT_SERVICE } from './constants/service';
 import { DatabaseModule } from '@app/common/database/Database.module';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from 'apps/auth/src/strategies/jwt.strategy';
-import { UsersModule } from 'apps/auth/src/users/users.module';
+import { JwtStrategy } from './auth/strategies/jwt.strategy';
+import { UsersModule } from './auth/users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
+    AuthModule,
     DatabaseModule,
     UsersModule,
     TypeOrmModule.forFeature([Product, Order]),

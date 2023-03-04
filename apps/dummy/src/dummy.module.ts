@@ -16,7 +16,7 @@ import { ConfigModule } from '@nestjs/config';
         DB_NAME: Joi.string().required(),
         DB_PORT: Joi.number().required(),
       }),
-      envFilePath: 'apps/dummy/.rds.env',
+      envFilePath: 'apps/dummy/.dummy.env',
     }),
   ],
   controllers: [DummyController],
