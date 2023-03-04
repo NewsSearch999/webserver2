@@ -16,10 +16,14 @@ import { IdPipe } from './pipes/id.pipe';
 import { NumberPipe } from './pipes/number.pipe';
 import { StringPipe } from './pipes/string.pipe';
 import { AuthGuard } from '@nestjs/passport';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 
 @Controller()
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(
+    private readonly ordersService: OrdersService,
+    private readonly amqpConnection : AmqpConnection
+    ) {}
 
   /**
    * 주문생성
@@ -131,5 +135,15 @@ export class OrdersController {
   @Get('/')
   healthCheck(){
     console.log('orders app healthcheck')
+  }
+
+  @Get('rpc')
+  async getRpc() {
+    const response = await this.amqpConnection.request({
+      exchange: 'exchange1',
+      routingKey: 'rpc',
+    });
+
+    return response;
   }
 }

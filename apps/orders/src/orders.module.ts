@@ -14,20 +14,22 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './auth/strategies/jwt.strategy';
 import { UsersModule } from './auth/users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { RmqService } from '@app/common/rmq/rmq.service';
 
 @Module({
   imports: [
+    RmqModule,
     AuthModule,
     DatabaseModule,
     UsersModule,
     TypeOrmModule.forFeature([Product, Order]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    RmqModule.register({
-      name: BILLING_SERVICE,
-    }),
-    RmqModule.register({
-      name: PAYMENT_SERVICE,
-    }),
+    // RmqModule.register({
+    //   name: BILLING_SERVICE,
+    // }),
+    // RmqModule.register({
+    //   name: PAYMENT_SERVICE,
+    // }),
   ],
   controllers: [OrdersController],
   providers: [OrdersService, ConnectionService, JwtStrategy],
