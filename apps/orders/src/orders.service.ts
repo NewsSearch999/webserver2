@@ -108,11 +108,16 @@ export class OrdersService {
   async getProducts(price: number, productId?: number) {
     const seekQuery = `
     SELECT productId, productName, image, price, stock  FROM products
-    WHERE price >= ? AND productId >= ? AND isDeleted = false 
+    WHERE price = ? AND productId > ? AND isDeleted = false  OR price >= ? AND productId != ? AND isDeleted = false 
     ORDER BY price, productId
     LIMIT 20`;
 
-    return this.connectionService.slaveQuery(seekQuery, [price, productId]);
+    return this.connectionService.slaveQuery(seekQuery, [
+      price,
+      productId,
+      price,
+      productId,
+    ]);
   }
 
   /**
@@ -128,13 +133,16 @@ export class OrdersService {
     const lastPrice = Number(page);
     const seekQuery = `
     SELECT productId, productName, image, price, stock FROM products 
-    WHERE price >= ? AND productName = ? AND productId >= ? AND isDeleted = false
+    WHERE price = ? AND productName = ? AND productId > ? AND isDeleted = false OR price >= ? AND productId != ? AND productName = ? AND isDeleted = false
     ORDER BY price, productId
     LIMIT 20`;
     return this.connectionService.slaveQuery(seekQuery, [
       lastPrice,
       productName,
       productId,
+      lastPrice,
+      productId,
+      productName,
     ]);
   }
 
