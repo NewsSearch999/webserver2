@@ -11,9 +11,6 @@ import { RmqService } from './rmq.service';
 
 @Module({
   imports: [
-    // ConfigModule.forRoot({
-    //   envFilePath: './libs/.libs.env',
-    // }),
     RabbitMQModule.forRootAsync(RabbitMQModule, {
       useFactory: (configService:ConfigService) => ({
         name: CONNECTION_NAME,

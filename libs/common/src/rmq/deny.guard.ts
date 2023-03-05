@@ -7,6 +7,7 @@ export class DenyGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const args = context.getArgs();
-    return args[0] == 42;
+    console.log(args)
+    return args[0];
   }
 }

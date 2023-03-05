@@ -15,6 +15,7 @@ import { JwtStrategy } from './auth/strategies/jwt.strategy';
 import { UsersModule } from './auth/users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { RmqService } from '@app/common/rmq/rmq.service';
+import { CursorFunction } from './util/cursor.fuction';
 
 @Module({
   imports: [
@@ -32,6 +33,6 @@ import { RmqService } from '@app/common/rmq/rmq.service';
     // }),
   ],
   controllers: [OrdersController],
-  providers: [OrdersService, ConnectionService, JwtStrategy],
+  providers: [OrdersService, ConnectionService, JwtStrategy, CursorFunction],
 })
 export class OrdersModule {}
