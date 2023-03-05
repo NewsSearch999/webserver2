@@ -158,6 +158,9 @@ export class OrdersService {
       lastPrice,
       productName,
       productId,
+      lastPrice,
+      productId,
+      productName,
     ]);
   }
 
