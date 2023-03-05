@@ -5,26 +5,34 @@ import * as Joi from 'joi';
 import { ConnectionService } from './connection/connection.service';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
-import { Order } from 'libs/entity/order.entity';
-import { Product } from 'libs/entity/product.entity';
+import { Order } from '@app/common/entity/order.entity';
+import { Product } from '@app/common/entity/product.entity';
 import { RmqModule } from '@app/common/rmq/rmq.module';
-import { BILLING_SERVICE } from './constants/service';
-import { DatabaseModule } from 'libs/database/typeorm.module';
+import { BILLING_SERVICE, PAYMENT_SERVICE } from './constants/service';
+import { DatabaseModule } from '@app/common/database/Database.module';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from 'apps/auth/src/strategies/jwt.strategy';
-import { UsersModule } from 'apps/auth/src/users/users.module';
+import { JwtStrategy } from './auth/strategies/jwt.strategy';
+import { UsersModule } from './auth/users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { RmqService } from '@app/common/rmq/rmq.service';
+import { CursorFunction } from './util/cursor.fuction';
 
 @Module({
   imports: [
+    RmqModule,
+    AuthModule,
     DatabaseModule,
     UsersModule,
     TypeOrmModule.forFeature([Product, Order]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    RmqModule.register({
-      name: BILLING_SERVICE,
-    }),
+    // RmqModule.register({
+    //   name: BILLING_SERVICE,
+    // }),
+    // RmqModule.register({
+    //   name: PAYMENT_SERVICE,
+    // }),
   ],
   controllers: [OrdersController],
-  providers: [OrdersService, ConnectionService, JwtStrategy],
+  providers: [OrdersService, ConnectionService, JwtStrategy, CursorFunction],
 })
 export class OrdersModule {}

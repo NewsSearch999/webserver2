@@ -9,28 +9,32 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { OrderDto } from './dto/order.dto';
-import { SearchDto } from './dto/search.dto';
-import { deliveryState } from 'libs/entity/enum/delivery.enum';
-import { orderState } from 'libs/entity/enum/order.enum';
+import { deliveryState } from '@app/common/entity/enum/delivery.enum';
+import { orderState } from '@app/common/entity/enum/order.enum';
 import { OrdersService } from './orders.service';
 import { IdPipe } from './pipes/id.pipe';
 import { NumberPipe } from './pipes/number.pipe';
 import { StringPipe } from './pipes/string.pipe';
 import { AuthGuard } from '@nestjs/passport';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 
 @Controller()
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(
+    private readonly ordersService: OrdersService,
+    private readonly amqpConnection : AmqpConnection
+    ) {}
 
   /**
    * 주문생성
-   * @param request
+   * @body productId, quantity
    * @returns
    */
   @UseGuards(AuthGuard())
-  @Post()
+  @Post('orders')
   async createOrder(@Body() orderDto: OrderDto, @Req() req) {
     const { userId } = req.user; //주문자 ID
+    // let userId = Math.floor(Math.random() * 1000)
     const request = {
       productId: orderDto.productId,
       quantity: orderDto.quantity,
@@ -38,14 +42,20 @@ export class OrdersController {
       deliveryState: deliveryState.결제대기,
       userId: userId,
     };
+    console.log(request)
     return this.ordersService.createOrder(request);
   }
 
-  /**주문 결제 */
+  /**
+   * 주문결제
+   * @param orderId
+   * @param req
+   * @returns
+   */
   @UseGuards(AuthGuard())
-  @Put('payment/:orderId')
+  @Put('orders/:orderid')
   async paymentOrder(
-    @Param('orderId', NumberPipe) orderId: number,
+    @Param('orderid', NumberPipe) orderId: number,
     @Req() req,
   ) {
     const { userId } = req.user;
@@ -56,30 +66,30 @@ export class OrdersController {
    * 주문조회
    * @returns
    */
+  @UseGuards(AuthGuard())
   @Get('orders')
-  async getOrders() {
-    return this.ordersService.getOrders();
+  async getOrders(@Req() req) {
+    const { userId } = req.user;
+    return this.ordersService.getOrders(userId);
   }
 
   /**
    * 메인 검색. 가격 오름차순.
-   * 첫 페이지는 page = 1
+   * 첫 페이지는 기격 0
    * 이후 페이지부터 page = 오름차순 정렬의 마지막 price, 즉 그 페이지의 가장 비싼 가격
    * @param price
    * @returns
    */
-  @Get('main/:price/:productId')
+  @Get('main/:price/:productid')
   async getProducts(
     @Param('price', NumberPipe) price: number,
-    @Param('productId', IdPipe) productId?: number,
+    @Param('productid', IdPipe) productId?: number,
   ) {
-    const cursorPrice = price - 1;
-
     //첫 페이지는 가격 0 이상, 이후로는 마지막 가격을 파라미터로 받는다고 가정
-    switch (cursorPrice) {
+    switch (price) {
       case 0:
         const cursorId = 1;
-        return this.ordersService.getProducts(cursorPrice, cursorId);
+        return this.ordersService.getProducts(price, cursorId);
 
       default:
         const lastPrice = price;
@@ -92,32 +102,50 @@ export class OrdersController {
    * 특정 상품 검색
    * 첫 페이지는 page = 1
    * 이후 페이지부터 page = 오름차순 정렬의 마지막 price, 즉 그 페이지의 가장 비싼 가격
-   * @param product
-   * @param page
+   * @param productName
+   * @param price
+   * @param productId
    * @returns
    */
   @Get('search/:productname/:price/:productid')
   async findProducts(
     @Param('productname', StringPipe) productName: string,
     @Param('price', NumberPipe) price: number,
-    @Param('productId', IdPipe) productId?: number,
+    @Param('productid', IdPipe) productId?: number,
   ) {
-    const cursorPrice = price - 1;
-
     //첫 페이지(page=1)는 가격 0 이상, 이후로는 마지막 가격을 파라미터로 받는다고 가정
     switch (price) {
       case 0:
         const cursorId = 1;
-        return this.ordersService.findProducts(
-          productName,
-          cursorPrice,
-          cursorId,
-        );
+        return this.ordersService.findProducts(productName, price, cursorId);
 
       default:
         const lastPrice = price;
         const lastId = productId;
         return this.ordersService.findProducts(productName, lastPrice, lastId);
     }
+  }
+
+  /**
+   * 
+   * ALB 헬스체크 경로
+   */
+  @Get('/')
+  healthCheck(){
+    console.log('orders app healthcheck')
+  }
+
+    /**
+   * 
+   * RMQ의 클라이언트와의 통신 테스트 경로
+   */
+  @Get('rpc')
+  async getRpc() {
+    const response = await this.amqpConnection.request({
+      exchange: 'exchange1',
+      routingKey: 'rpc',
+    });
+
+    return response;
   }
 }

@@ -5,6 +5,11 @@ export class Product {
   @Column()
   productName: string;
 
+  @Column({
+    default:1
+  })
+  userId: number;
+
   @Column()
   description: string;
 
@@ -18,6 +23,11 @@ export class Product {
     default: 0
   })
   stock: number;
+
+  @Column({
+    default: false,
+  })
+  isDeleted: boolean;
 
 
 }

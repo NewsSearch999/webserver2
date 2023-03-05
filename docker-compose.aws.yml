@@ -2,12 +2,11 @@ version: '2'
 
 services:
   orders:
+    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:orders
     build:
       context: .
       dockerfile: ./apps/orders/Dockerfile
     command: npm run start:dev orders
-    # env_file:
-    #   - ./libs/libs.env
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
@@ -15,17 +14,16 @@ services:
       - '3000:3000' 
 
   billing:
+    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:billing
     build:
       context: .
       dockerfile: ./apps/billing/Dockerfile
     command: npm run start:dev billing
-    # env_file:
-    #   - ./libs/libs.env
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules    
 
-  rabbitmq:
-    image: rabbitmq
-    ports:
-    - '5672:5672'     
+  # rabbitmq:
+  #   image: ${ECR_REGISTRY}/rabbitmq:latest
+  #   ports:
+  #   - '5672:5672'     

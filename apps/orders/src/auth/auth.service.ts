@@ -1,8 +1,12 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
-import { User } from 'libs/entity/user.entity';
+import { User } from '@app/common/entity/user.entity';
 import { Repository } from 'typeorm';
 import { UserRequest } from './users/dto/create-user.request';
 import * as bcrypt from 'bcrypt';
@@ -21,24 +25,11 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  // async login(user: User, response: Response) {
-  //   const tokenPayload: TokenPayload = {
-  //     userId: user.userId,
-  //   };
-
-  //   const expires = new Date();
-  //   expires.setSeconds(
-  //     expires.getSeconds() + this.configService.get('JWT_EXPIRATION'),
-  //   );
-
-  //   const token = this.jwtService.sign(tokenPayload);
-
-  //   response.cookie('Authentication', token, {
-  //     httpOnly: true,
-  //     expires,
-  //   });
-  // }
-
+  /**
+   * 로그인
+   * @param request email, password
+   * @returns
+   */
   async login(request: UserRequest): Promise<{ accessToken: string }> {
     const { email, password } = request;
     const exist = await this.users.findOne({
@@ -50,6 +41,8 @@ export class AuthService {
       const payload = { userId: exist.userId };
       const accessToken = await this.jwtService.sign(payload);
       return { accessToken };
+    } else {
+      throw new HttpException('잘못된 비밀번호 입니다', 403);
     }
   }
 

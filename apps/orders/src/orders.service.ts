@@ -6,21 +6,25 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConnectionService } from './connection/connection.service';
-import { BILLING_SERVICE } from './constants/service';
+import { BILLING_SERVICE, PAYMENT_SERVICE } from './constants/service';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom, throwError } from 'rxjs';
-import { orderState } from 'libs/entity/enum/order.enum';
+import { orderState } from '@app/common/entity/enum/order.enum';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { CursorFunction } from './util/cursor.fuction';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private readonly connectionService: ConnectionService,
-    @Inject(BILLING_SERVICE) private billingClient: ClientProxy,
-  ) {}
+    private readonly amqpConnection: AmqpConnection,
+    private readonly cursorFunction: CursorFunction, // @Inject(BILLING_SERVICE) private billingClient: ClientProxy,
+  ) // @Inject(PAYMENT_SERVICE) private paymentClient: ClientProxy,
+  {}
 
   async findProductByPK(productId) {
     const searchQuery = `SELECT * FROM products WHERE productId = (?)`;
-    const product = await this.connectionService.Query(searchQuery, [
+    const product = await this.connectionService.slaveQuery(searchQuery, [
       [productId],
     ]);
     return product;
@@ -36,7 +40,7 @@ export class OrdersService {
     try {
       const product = await this.findProductByPK(request.productId);
       if (!product[0]) throw new HttpException('상품정보가 없습니다', 403);
-      const order = await this.connectionService.Query(createQuery, [
+      const order = await this.connectionService.masterQuery(createQuery, [
         [
           request.productId,
           request.quantity,
@@ -46,11 +50,13 @@ export class OrdersService {
           request.userId,
         ],
       ]);
-      await lastValueFrom(
-        this.billingClient.emit('order_created', {
-          request,
-        }),
-      );
+      // await lastValueFrom(
+      //   this.billingClient.emit('order_created', {
+      //     request,
+      //   }),
+      // );
+
+      await this.amqpConnection.publish('exchange1', 'BILLING', request);
 
       return order;
     } catch (err) {
@@ -73,7 +79,7 @@ export class OrdersService {
     `;
 
     /**주문 정보 조회 */
-    const row = await this.connectionService.Query(seekQuery, [orderId]);
+    const row = await this.connectionService.slaveQuery(seekQuery, [orderId]);
     const orderData = row[0];
 
     /**주문자 확인 */
@@ -89,11 +95,13 @@ export class OrdersService {
       throw new HttpException('재고가 부족합니다', 403);
 
     /**메세지큐(결제 데이터 전송)*/
-    await lastValueFrom(
-      this.billingClient.emit('order_payment', {
-        orderData,
-      }),
-    );
+    // await lastValueFrom(
+    //   this.paymentClient.emit('order_payment', {
+    //     orderData,
+    //   }),
+    // );
+
+    await this.amqpConnection.publish('exchange1', 'PAYMENT', orderData);
 
     return '결제처리중 입니다.';
   }
@@ -105,13 +113,27 @@ export class OrdersService {
    */
 
   async getProducts(price: number, productId?: number) {
+    // const cursor = ''.concat(
+    //   this.cursorFunction.lpad(price.toString(), 10, '0'),
+    //   this.cursorFunction.lpad(productId.toString(), 10, '0')
+    // )
+
+    // console.log(cursor);
+    // const seekQuery = `
+    // SELECT productId, productName, image, price, stock
+    // FROM products
+    // WHERE CONCAT(LPAD(price, 10, '0'), LPAD(productId, 10, '0')) > '${cursor}' AND isDeleted = false 
+    // ORDER BY price, productId
+    // LIMIT 20`;
+
     const seekQuery = `
-    SELECT productId, productName, image, price, stock  FROM products
-    WHERE price >= ? AND productId >= ? AND isDeleted = false 
+    SELECT productId, productName, image, price, stock
+    FROM products
+    WHERE ((price > ? AND isDeleted = false) OR (price = ? AND productId > ? AND isDeleted = false))
     ORDER BY price, productId
     LIMIT 20`;
 
-    return this.connectionService.Query(seekQuery, [price, productId]);
+    return this.connectionService.slaveQuery(seekQuery, [price, price, productId]);
   }
 
   /**
@@ -127,20 +149,28 @@ export class OrdersService {
     const lastPrice = Number(page);
     const seekQuery = `
     SELECT productId, productName, image, price, stock FROM products 
-    WHERE price >= ? AND productName = ? AND productId >= ? AND isDeleted = false
+    WHERE ((price > ? AND productName = ? AND isDeleted = false) OR (price = ? AND productName = ? AND productId > ? AND isDeleted = false))
     ORDER BY price, productId
     LIMIT 20`;
-    return this.connectionService.Query(seekQuery, [
+    return this.connectionService.slaveQuery(seekQuery, [
+      lastPrice,
+      productName,
       lastPrice,
       productName,
       productId,
+      lastPrice,
+      productId,
+      productName,
     ]);
   }
 
   /**주문 조회 */
-  async getOrders() {
+  async getOrders(userId: number) {
     const searchQuery = `
-    SELECT * FROM Orders`;
-    return this.connectionService.Query(searchQuery, []);
+    SELECT orderId,stock,products.price,quantity,productName,createdAt,orderState,deliveryState,image FROM orders
+    LEFT OUTER JOIN products
+    ON orders.productId = products.productId
+    WHERE orders.userId = ?`;
+    return this.connectionService.slaveQuery(searchQuery, [userId]);
   }
 }

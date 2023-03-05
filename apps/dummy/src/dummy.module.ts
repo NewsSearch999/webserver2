@@ -16,10 +16,10 @@ import { ConfigModule } from '@nestjs/config';
         DB_NAME: Joi.string().required(),
         DB_PORT: Joi.number().required(),
       }),
-      envFilePath: './apps/dummy/.env',
+      envFilePath: 'apps/dummy/.dummy.env',
     }),
   ],
   controllers: [DummyController],
-  providers: [DummyService, ConnectionService ],
+  providers: [DummyService, ConnectionService],
 })
 export class DummyModule {}
