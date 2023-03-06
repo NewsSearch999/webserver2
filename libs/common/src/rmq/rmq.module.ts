@@ -2,45 +2,51 @@ import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
-import { CONNECTION_NAME } from './constants/service';
-import { RmqService } from './rmq.service';
+// import { RmqService } from './rmq.service';
 
-// interface RmqModuleOptions {
-//   name: string;
-// }
+interface RmqModuleOptions {
+  name: string;
+}
 
-@Module({
-  imports: [
-    RabbitMQModule.forRootAsync(RabbitMQModule, {
-      useFactory: (configService:ConfigService) => ({
-        name: CONNECTION_NAME,
-        exchanges: [
-          {
-            name: 'exchange1',
-            type: 'direct',
-          },
-        ],
-        uri: configService.get('RABBIT_MQ_URI'),
-        connectionInitOptions: { wait: true },
-        channels: {
-          'channel-1': {
-            prefetchCount: 15,
-            default: true,
-          },
-          'channel-2': {
-            prefetchCount: 2,
-          },
-        },
-      }),
-     
-      inject: [ConfigService],
-    }),
-    RmqModule,
-  ],
-  providers: [],
-  exports: [RabbitMQModule],
-})
-export class RmqModule {}
+export class RmqModule {
+  static register({ name }: RmqModuleOptions): DynamicModule {
+    return {
+      module: RmqModule,
+      imports: [
+        RabbitMQModule.forRootAsync(RabbitMQModule, {
+          useFactory: (configService: ConfigService) => ({
+            //connection name이 들어간다
+            name: name,
+            exchanges: [
+              {
+                name: name,
+                type: 'direct',
+              },
+            ],
+            uri: configService.get('RABBIT_MQ_URI'),
+            connectionInitOptions: { wait: false },
+            connectionOptions: {
+              heartbeatIntervalInSeconds: 10, // heartbeat 주기
+            },
+            channels: {
+              'channel-1': {
+                prefetchCount: 100,
+                default: true,
+              },
+              'channel-2': {
+                prefetchCount: 100,
+              },
+            },
+          }),
+          inject: [ConfigService],
+        }),
+        RmqModule,
+      ],
+      providers: [],
+      exports: [RabbitMQModule],
+    };
+  }
+}
 // export class RmqModule {
 //   static register({ name }: RmqModuleOptions): DynamicModule {
 //     return {

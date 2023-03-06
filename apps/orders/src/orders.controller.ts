@@ -30,11 +30,11 @@ export class OrdersController {
    * @body productId, quantity
    * @returns
    */
-  @UseGuards(AuthGuard())
+  // @UseGuards(AuthGuard())
   @Post('orders')
   async createOrder(@Body() orderDto: OrderDto, @Req() req) {
-    const { userId } = req.user; //주문자 ID
-    // let userId = Math.floor(Math.random() * 1000)
+    // const { userId } = req.user; //주문자 ID
+    let userId = Math.floor(Math.random() * 1000)
     const request = {
       productId: orderDto.productId,
       quantity: orderDto.quantity,
@@ -42,7 +42,6 @@ export class OrdersController {
       deliveryState: deliveryState.결제대기,
       userId: userId,
     };
-    console.log(request)
     return this.ordersService.createOrder(request);
   }
 

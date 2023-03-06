@@ -24,7 +24,18 @@ export class BillingController {
     errorHandler: ReplyErrorCallback,
   })
   @UseGuards(DenyGuard)
-  async subscribeBiling(@RabbitPayload() data: any) {
+  async subscribeBiling1(@RabbitPayload() data: any) {
+    this.billingService.message(data);
+  }
+
+  @RabbitSubscribe({
+    exchange: 'exchange2',
+    routingKey: 'BILLING',
+    queue: 'BILLING',
+    errorHandler: ReplyErrorCallback,
+  })
+  @UseGuards(DenyGuard)
+  async subscribeBiling2(@RabbitPayload() data: any) {
     this.billingService.message(data);
   }
 
@@ -35,7 +46,19 @@ export class BillingController {
     errorHandler: ReplyErrorCallback,
   })
   @UseGuards(DenyGuard)
-  async subscribePayment(@RabbitPayload() orderData: any) {
+  async subscribePayment1(@RabbitPayload() orderData: any) {
+    await this.billingService.payment(orderData);
+    this.billingService.message(orderData);
+  }
+
+  @RabbitSubscribe({
+    exchange: 'exchange2',
+    routingKey: 'PAYMENT',
+    queue: 'PAYMENT',
+    errorHandler: ReplyErrorCallback,
+  })
+  @UseGuards(DenyGuard)
+  async subscribePayment2(@RabbitPayload() orderData: any) {
     await this.billingService.payment(orderData);
     this.billingService.message(orderData);
   }

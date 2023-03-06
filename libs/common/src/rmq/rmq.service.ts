@@ -1,28 +1,28 @@
-import { AmqpConnectionManager, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { RmqContext, RmqOptions, Transport } from '@nestjs/microservices';
-import { CONNECTION_NAME } from './constants/service';
+// import { AmqpConnectionManager, RabbitRPC } from '@golevelup/nestjs-rabbitmq';
+// import { Injectable } from '@nestjs/common';
+// import { ConfigService } from '@nestjs/config';
+// import { RmqContext, RmqOptions, Transport } from '@nestjs/microservices';
+// import { CONNECTION_NAME1 } from './constants/service';
 
-@Injectable()
-export class RmqService {
-  constructor(
-    private readonly amqpConnectionManager: AmqpConnectionManager,
-  ) // private readonly configService: ConfigService
-  {}
-  get amqpConnection() {
-    return this.amqpConnectionManager.getConnection(CONNECTION_NAME);
-  }
-  @RabbitRPC({
-    routingKey: 'rpc',
-    exchange: 'exchange1',
-    queue: 'rpc',
-  })
-  rpc(message: object) {
-    return {
-      echo : message
-    };
-  }
+// @Injectable()
+// export class RmqService {
+//   constructor(
+//     private readonly amqpConnectionManager: AmqpConnectionManager,
+//   ) // private readonly configService: ConfigService
+//   {}
+//   get amqpConnection() {
+//     return this.amqpConnectionManager.getConnection(CONNECTION_NAME1);
+//   }
+//   @RabbitRPC({
+//     routingKey: 'rpc',
+//     exchange: 'exchange1',
+//     queue: 'rpc',
+//   })
+//   rpc(message: object) {
+//     return {
+//       echo : message
+//     };
+//   }
   //noAck의 기본값을 false, acknowledge 메시지를 수동으로
   //Ack을 받아야, 즉 consumer에게 메시지가 갔다는 신호가 와야 rabbitmq는 그걸 지우던가 합니다.
   // getOptions(queue: string, noAck = false) : RmqOptions {
@@ -43,4 +43,4 @@ export class RmqService {
   //     const originalMessage = context.getMessage();
   //     channel.ack(originalMessage);
   //   }
-}
+// }

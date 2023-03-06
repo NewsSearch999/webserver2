@@ -12,13 +12,15 @@ import { lastValueFrom, throwError } from 'rxjs';
 import { orderState } from '@app/common/entity/enum/order.enum';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { CursorFunction } from './util/cursor.fuction';
+import { ExchangeFunction } from './util/exchange.function';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private readonly connectionService: ConnectionService,
     private readonly amqpConnection: AmqpConnection,
-    private readonly cursorFunction: CursorFunction, // @Inject(BILLING_SERVICE) private billingClient: ClientProxy,
+    private readonly exchangeFuncion: ExchangeFunction,
+    // @Inject(BILLING_SERVICE) private billingClient: ClientProxy,
   ) // @Inject(PAYMENT_SERVICE) private paymentClient: ClientProxy,
   {}
 
@@ -50,13 +52,9 @@ export class OrdersService {
           request.userId,
         ],
       ]);
-      // await lastValueFrom(
-      //   this.billingClient.emit('order_created', {
-      //     request,
-      //   }),
-      // );
 
-      await this.amqpConnection.publish('exchange1', 'BILLING', request);
+      const exchange = this.exchangeFuncion.randomExchange()
+      await this.amqpConnection.publish(exchange, 'BILLING', request);
 
       return order;
     } catch (err) {
@@ -95,13 +93,8 @@ export class OrdersService {
       throw new HttpException('재고가 부족합니다', 403);
 
     /**메세지큐(결제 데이터 전송)*/
-    // await lastValueFrom(
-    //   this.paymentClient.emit('order_payment', {
-    //     orderData,
-    //   }),
-    // );
-
-    await this.amqpConnection.publish('exchange1', 'PAYMENT', orderData);
+    const exchange = this.exchangeFuncion.randomExchange()
+    await this.amqpConnection.publish(exchange, 'PAYMENT', orderData);
 
     return '결제처리중 입니다.';
   }
