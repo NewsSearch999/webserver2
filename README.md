@@ -1,10 +1,9 @@
 ## **_🛒쇼핑몰 대용량 트래픽 프로젝트_**
-><br/>
+
 >
 >**[📎 노션](https://www.notion.so/OrderSearch-11ef1dbc148444b8b55efaa4d9f1775b)**<br/><br/>
 >**[📎 Frontend링크](https://github.com/NewsSearch999/Frontend)**<br/><br/>
 >
-><br/>
 
 <br/>
 
