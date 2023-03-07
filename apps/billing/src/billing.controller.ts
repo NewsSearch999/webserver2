@@ -1,71 +1,81 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, OnModuleInit} from '@nestjs/common';
 import { BillingService } from './billing.service';
-// import { ReplyErrorCallback } from '@app/common/rmq/exceptions/reply.error.callback';
-// import { DenyGuard } from '@app/common/rmq/deny.guard';
-// import * as amqp from 'amqplib';
-import { ConfigService } from '@nestjs/config';
-import { MessagePattern, Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
+import { MessagePattern, Ctx, Payload, RmqContext } from '@nestjs/microservices';
 import { RmqService } from '@app/common/rmq/rmq.service';
-
+import { RabbitmqChannelProvider } from './connection/rabbitmq-channel.provider';
+ 
 
 @Controller()
-export class BillingController {
+export class BillingController implements OnModuleInit {
+  private channel: any;
   constructor(
     private readonly billingService: BillingService,
-    private readonly configService: ConfigService,
     private readonly rmqService: RmqService,
-  ) {}
-
-  @MessagePattern('exchange1.billing1')
-  async subscribeBiling1(@Payload() data: any, @Ctx() context: RmqContext) {
-    console.log('exchange1 queue 메시지 :', data);
-    await this.billingService.createOrder(data);
-    this.rmqService.ack(context);
-  }
-
-  // @RabbitSubscribe({
-  //   exchange: 'exchange2',
-  //   routingKey: 'billing',
-  //   queue: 'billing',
-  //   errorHandler: ReplyErrorCallback,
-  // })
-  // @UseGuards(DenyGuard)
-  @EventPattern('exchange2.billing2')
-  async subscribeBiling2(@Payload() data: any, @Ctx() context: RmqContext) {
-    console.log('exchange2 queue 메시지 :', data);
-    await this.billingService.createOrder(data)
-    this.rmqService.ack(context);
-  }
-
-  // @RabbitSubscribe({
-  //   exchange: 'exchange1',
-  //   routingKey: 'payment',
-  //   queue: 'payment',
-  //   errorHandler: ReplyErrorCallback,
-  // })
-  // @UseGuards(DenyGuard)
-  @EventPattern('exchange1.payment1')
-  async subscribePayment1(@Payload() orderData: any, @Ctx() context: RmqContext) {
-    console.log('exchange1 payment 메시지 :', orderData);
-    await this.billingService.payment(orderData);
-    this.rmqService.ack(context);
+    private readonly rabbitmqChannelProvider: RabbitmqChannelProvider,
+  ) {
+    this.rabbitmqChannelProvider.createChannel().then((channel) => {
+      channel.assertQueue('billing1');
+      channel.assertQueue('billing2');
+      channel.assertQueue('payment1');
+      channel.assertQueue('payment2');
+      channel.bindQueue('billing1', 'exchange1', 'exchange1.billing1');
+      channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
+      channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
+      channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
+    });
 
   }
 
-  // @RabbitSubscribe({
-  //   exchange: 'exchange2',
-  //   routingKey: 'PAYMENT',
-  //   queue: 'PAYMENT',
-  //   errorHandler: ReplyErrorCallback,
-  // })
-  // @UseGuards(DenyGuard)
-  @EventPattern('exchange2.payment2')
-  async subscribePayment2(@Payload() orderData: any, @Ctx() context: RmqContext) {
-    console.log('exchange2 payment 메시지 :', orderData)
-    await this.billingService.payment(orderData);
-    this.rmqService.ack(context);
+  async onModuleInit(): Promise<void> {
+    this.channel = await this.rabbitmqChannelProvider.createChannel();
+    await this.channel.assertQueue('billing1');
+    await this.channel.assertQueue('payment1');
+    await this.channel.assertQueue('billing2');
+    await this.channel.assertQueue('payment2');
+    await this.channel.bindQueue('billing1', 'exchange1', 'exchange1.billing1');
+    await this.channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
+    await this.channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
+    await this.channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
+
+    await this.channel.consume('billing1', (msg) => this.subscribeBilling(msg));
+    await this.channel.consume('payment1', (msg) => this.subscribePayment(msg));
+    await this.channel.consume('billing2', (msg) => this.subscribeBilling(msg));
+    await this.channel.consume('payment2', (msg) => this.subscribePayment(msg));
+  }
+
+  // @MessagePattern('exchange1.billing1')
+  async subscribeBilling(msg: any): Promise<void> {
+    const data = JSON.parse(msg.content.toString());
+    console.log('Received billing message:', data);
+    await this.billingService.createOrder(msg)
+    this.rmqService.ack(msg);
+  }
+
+  // @MessagePattern('exchange2.billing2')
+  // async subscribeBilling2(msg: any): Promise<void> {
+  //   const data = JSON.parse(msg.content.toString());
+  //   console.log('Received billing message:', data);
+  //   await this.billingService.createOrder(msg)
+  //   this.rmqService.ack(msg);
+  // }
+
+  // @MessagePattern('exchange1.payment1')
+  async subscribePayment(msg: any): Promise<void> {  
+    const data = JSON.parse(msg.content.toString());
+    console.log('Received payment message:', data);
+    await this.billingService.payment(msg)
+    this.rmqService.ack(msg);
 
   }
-}
+
+  // @MessagePattern('exchange2.payment2')
+  // async subscribePayment2(msg: any) {
+  //   const data = JSON.parse(msg.content.toString());
+  //   console.log('Received payment message:', data);
+  //   await this.billingService.payment(msg)
+  //   this.rmqService.ack(msg);
+
+  }
+
 
 

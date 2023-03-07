@@ -11,9 +11,10 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './auth/strategies/jwt.strategy';
 import { UsersModule } from './auth/users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { CONNECTION_NAME1 } from './constants/service';
+import { BILLING, CONNECTION_NAME1, PAYMENT } from './constants/service';
 import { CONNECTION_NAME2 } from './constants/service';
 import { ExchangeFunction } from './util/exchange.function';
+import { RabbitmqChannelProvider } from './connection/rabbitmq-channel.provider';
 
 @Module({
   imports: [
@@ -24,15 +25,21 @@ import { ExchangeFunction } from './util/exchange.function';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     //메시지큐 부하분산
     RmqModule.register({
-      name: 'BILLING',
-      exchange: CONNECTION_NAME1
+      name: BILLING,
+      exchange: 'exchange1',
     }),
     RmqModule.register({
-      name: 'PAYMENT',
-      exchange: CONNECTION_NAME2
+      name: PAYMENT,
+      exchange: 'exchange2',
     }),
   ],
   controllers: [OrdersController],
-  providers: [OrdersService, ConnectionService, JwtStrategy, ExchangeFunction],
+  providers: [
+    OrdersService,
+    ConnectionService,
+    JwtStrategy,
+    ExchangeFunction,
+    RabbitmqChannelProvider,
+  ],
 })
 export class OrdersModule {}

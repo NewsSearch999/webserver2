@@ -6,44 +6,42 @@ RabbitMQServer,
 ExchangeType,
 } from '@lukadriel/nestjs-rabbitmq-transporter';
 import { ConfigService } from '@nestjs/config';
-import { RmqService } from '@app/common';
 const configService = new ConfigService()
 async function bootstrap() {
     const app = await NestFactory.create(BillingModule)
-    // const rmqService = app.get<RmqService>(RmqService);
     app.connectMicroservice<MicroserviceOptions>({
       strategy: new RabbitMQServer({
-        queue: 'billing',
+        queue: 'billing1',
         exchange: 'exchange1',
         exchangeType: ExchangeType.TOPIC,
-        urls: [configService.get('RABBIT_MQ_exchange1_URI')],
+        urls: [configService.get('RABBIT_MQ_URI')],
         noAck: false,  
       })
     })
     app.connectMicroservice<MicroserviceOptions>({
       strategy: new RabbitMQServer({
-        queue: 'payment',
+        queue: 'payment1',
         exchange: 'exchange1',
         exchangeType: ExchangeType.TOPIC,
-        urls: [configService.get('RABBIT_MQ_exchange1_URI')],
+        urls: [configService.get('RABBIT_MQ_URI')],
         noAck: false,  
       })
     })
     app.connectMicroservice<MicroserviceOptions>({
       strategy: new RabbitMQServer({
-        queue: 'billing',
+        queue: 'billing2',
         exchange: 'exchange2',
         exchangeType: ExchangeType.TOPIC,
-        urls: [configService.get('RABBIT_MQ_exchange2_URI')],
+        urls: [configService.get('RABBIT_MQ_URI')],
         noAck: false,  
       })
     })
     app.connectMicroservice<MicroserviceOptions>({
       strategy: new RabbitMQServer({
-        queue: 'payment',
+        queue: 'payment2',
         exchange: 'exchange2',
         exchangeType: ExchangeType.TOPIC,
-        urls: [configService.get('RABBIT_MQ_exchange2_URI')],
+        urls: [configService.get('RABBIT_MQ_URI')],
         noAck: false,
       })
     })

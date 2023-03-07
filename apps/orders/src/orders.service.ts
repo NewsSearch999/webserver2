@@ -9,16 +9,32 @@ import { ConnectionService } from './connection/connection.service';
 import { orderState } from '@app/common/entity/enum/order.enum';
 import { ExchangeFunction } from './util/exchange.function';
 import { ClientProxy } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
+import { from, lastValueFrom } from 'rxjs';
+import { BILLING } from './constants/service';
+import { PAYMENT } from './constants/service';
+import { RabbitmqChannelProvider } from './connection/rabbitmq-channel.provider';
 
 @Injectable()
 export class OrdersService {
+  private channel: any;
   constructor(
     private readonly connectionService: ConnectionService,
     private readonly exchangeFunction: ExchangeFunction,
-    @Inject('billing') private billingClient: ClientProxy,
-    @Inject('payment') private paymentClient: ClientProxy,
-  ) {}
+    private readonly rabbitmqChannelProvider: RabbitmqChannelProvider,
+    @Inject(BILLING) private billingClient: ClientProxy,
+    @Inject(PAYMENT) private paymentClient: ClientProxy,
+  ) {
+    this.rabbitmqChannelProvider.createChannel().then((channel) => {
+      channel.assertQueue('billing1');
+      channel.assertQueue('billing2');
+      channel.assertQueue('payment1');
+      channel.assertQueue('payment2');
+      channel.bindQueue('billing1', 'exchange1', 'exchange1.billing1');
+      channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
+      channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
+      channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
+    });
+  }
 
   async findProductByPK(productId) {
     const searchQuery = `SELECT * FROM products WHERE productId = (?)`;
@@ -28,50 +44,51 @@ export class OrdersService {
     return product;
   }
 
+  async onModuleInit(): Promise<void> {
+    //result = [exchange, billing, payment]
+    // const result = this.exchangeFunction.exchangeBalancing();
+    this.channel = await this.rabbitmqChannelProvider.createChannel();
+
+    await this.channel.assertQueue('billing1');
+    await this.channel.assertQueue('payment1');
+    await this.channel.assertQueue('billing2');
+    await this.channel.assertQueue('payment2');
+    await this.channel.bindQueue('billing1', 'exchange1', 'exchange1.billing1');
+    await this.channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
+    await this.channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
+    await this.channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
+    //publish(exchange: string, routingKey: string, content: Buffer, options?: Options.Publish): boolean;
+    // await this.channel.publish(
+    //   `${result[0]}`,
+    //   `${result[0]}.${result[1]}`,
+    //   (msg) => this.createOrder(msg),
+    // );
+    // await this.channel.publish(
+    //   `${result[0]}`,
+    //   `${result[0]}.${result[2]}`,
+    //   (msg) => this.createOrder(msg),
+    // );
+  }
+
   /**
    * 주문 생성
    * @param request
    * @returns
    */
   async createOrder(request: object) {
-    //const createQuery = `INSERT INTO orders (productId, quantity, price, orderState, deliveryState,userId) values (?)`;
     try {
-      // const product = await this.findProductByPK(request.productId);
-      // if (!product[0]) throw new HttpException('상품정보가 없습니다', 403);
-      // if (product[0].stock <= 0){
-      //   return '재고 수량이 없습니다.'
-      // }
-      // const order = await this.connectionService.masterQuery(createQuery, [
-      //   [
-      //     request.productId,
-      //     request.quantity,
-      //     product[0].price,
-      //     request.orderState,
-      //     request.deliveryState,
-      //     request.userId,
-      //   ],
-      // ]);
+      //balanceArr = [exchange, billing, payment]
+      const balanceArr = this.exchangeFunction.exchangeBalancing();
 
-      const exchange = this.exchangeFunction.exchangeBalancing();
-      // await this.amqpConnection.publish(exchange, 'billing', request);
-      switch (exchange) {
-        case 'exchange1':
-          await lastValueFrom(
-            this.billingClient.emit(`exchange1.order`, {
-              request,
-            }),
-          );
-          return '주문처리 중입니다.';
-
-        case 'exchange2':
-          await lastValueFrom(
-            this.billingClient.emit(`exchange2.order`, {
-              request,
-            }),
-          );
-          return '주문처리 중입니다.';
-      }
+      //publish(exchange: string, routingKey: string, content: Buffer, options?: Options.Publish): boolean;
+      const result = await this.channel.publish(
+        `${balanceArr[0]}`,
+        `${balanceArr[0]}.${balanceArr[1]}`,
+        Buffer.from(JSON.stringify(request)),
+      );
+      return `${result}: 주문처리 중입니다.`;
     } catch (err) {
+      console.error(err);
       throw err;
     }
   }
@@ -107,26 +124,17 @@ export class OrdersService {
       throw new HttpException('재고가 부족합니다', 403);
 
     /**메세지큐(결제 데이터 전송)*/
-    const exchange = this.exchangeFunction.exchangeBalancing();
-    // await this.amqpConnection.publish(exchange, 'payment', orderData);
-    switch (exchange) {
-      case 'exchange1':
+    //balanceArr = [exchange, billing, payment]
+    const balanceArr = this.exchangeFunction.exchangeBalancing();
         await lastValueFrom(
-          this.paymentClient.emit(`exchange1.payment`, {
+          this.paymentClient.emit(`${balanceArr[0]}.${balanceArr[2]}`, {
             orderData,
           }),
         );
         return '결제처리중 입니다.';
 
-      case 'exchange2':
-        await lastValueFrom(
-          this.paymentClient.emit(`exchange2.payment`, {
-            orderData,
-          }),
-        );
-        return '결제처리중 입니다.';
     }
-  }
+  
 
   /**
    * 메인 상품 검색. 일단 가격 싼 순서대로 페이지네이션
