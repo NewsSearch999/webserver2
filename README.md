@@ -14,7 +14,8 @@
 <br/>
 
 ## 🛠️ **_프로젝트 아키텍처_**
-![아키텍처](https://user-images.githubusercontent.com/98438390/223332277-73421e00-f63f-4786-872b-66239e235a2d.png)
+![아키텍처](https://user-images.githubusercontent.com/98438390/223382237-64941454-ce5f-465e-8e2a-591aaa991af1.png)
+
 
 
 <br/>
