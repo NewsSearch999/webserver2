@@ -24,10 +24,12 @@ import { ExchangeFunction } from './util/exchange.function';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     //메시지큐 부하분산
     RmqModule.register({
-      name: CONNECTION_NAME1,
+      name: 'BILLING',
+      exchange: CONNECTION_NAME1
     }),
     RmqModule.register({
-      name: CONNECTION_NAME2,
+      name: 'PAYMENT',
+      exchange: CONNECTION_NAME2
     }),
   ],
   controllers: [OrdersController],

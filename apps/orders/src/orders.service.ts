@@ -7,18 +7,18 @@ import {
 } from '@nestjs/common';
 import { ConnectionService } from './connection/connection.service';
 import { orderState } from '@app/common/entity/enum/order.enum';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { ExchangeFunction } from './util/exchange.function';
+import { ClientProxy } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private readonly connectionService: ConnectionService,
-    private readonly amqpConnection: AmqpConnection,
-    private readonly exchangeFuncion: ExchangeFunction,
-    // @Inject(BILLING_SERVICE) private billingClient: ClientProxy,
-  ) // @Inject(PAYMENT_SERVICE) private paymentClient: ClientProxy,
-  {}
+    private readonly exchangeFunction: ExchangeFunction,
+    @Inject('BILLING') private billingClient: ClientProxy,
+    @Inject('PAYMENT') private paymentClient: ClientProxy,
+  ) {}
 
   async findProductByPK(productId) {
     const searchQuery = `SELECT * FROM products WHERE productId = (?)`;
@@ -33,26 +33,44 @@ export class OrdersService {
    * @param request
    * @returns
    */
-  async createOrder(request) {
-    const createQuery = `INSERT INTO orders (productId, quantity, price, orderState, deliveryState,userId) values (?)`;
+  async createOrder(request: object) {
+    //const createQuery = `INSERT INTO orders (productId, quantity, price, orderState, deliveryState,userId) values (?)`;
     try {
-      const product = await this.findProductByPK(request.productId);
-      if (!product[0]) throw new HttpException('상품정보가 없습니다', 403);
-      const order = await this.connectionService.masterQuery(createQuery, [
-        [
-          request.productId,
-          request.quantity,
-          product[0].price,
-          request.orderState,
-          request.deliveryState,
-          request.userId,
-        ],
-      ]);
+      // const product = await this.findProductByPK(request.productId);
+      // if (!product[0]) throw new HttpException('상품정보가 없습니다', 403);
+      // if (product[0].stock <= 0){
+      //   return '재고 수량이 없습니다.'
+      // }
+      // const order = await this.connectionService.masterQuery(createQuery, [
+      //   [
+      //     request.productId,
+      //     request.quantity,
+      //     product[0].price,
+      //     request.orderState,
+      //     request.deliveryState,
+      //     request.userId,
+      //   ],
+      // ]);
 
-      const exchange = this.exchangeFuncion.exchangeBalancing()
-      await this.amqpConnection.publish(exchange, 'BILLING', request);
+      const exchange = this.exchangeFunction.exchangeBalancing();
+      // await this.amqpConnection.publish(exchange, 'billing', request);
+      switch (exchange) {
+        case 'exchange1':
+          await lastValueFrom(
+            this.billingClient.emit(`exchange1_order`, {
+              request,
+            }),
+          );
+          return '주문처리 중입니다.';
 
-      return order;
+        case 'exchange2':
+          await lastValueFrom(
+            this.billingClient.emit(`exchange2_order`, {
+              request,
+            }),
+          );
+          return '주문처리 중입니다.';
+      }
     } catch (err) {
       throw err;
     }
@@ -89,10 +107,25 @@ export class OrdersService {
       throw new HttpException('재고가 부족합니다', 403);
 
     /**메세지큐(결제 데이터 전송)*/
-    const exchange = this.exchangeFuncion.exchangeBalancing()
-    await this.amqpConnection.publish(exchange, 'PAYMENT', orderData);
+    const exchange = this.exchangeFunction.exchangeBalancing();
+    // await this.amqpConnection.publish(exchange, 'payment', orderData);
+    switch (exchange) {
+      case 'exchange1':
+        await lastValueFrom(
+          this.paymentClient.emit(`exchange1_payment`, {
+            orderData,
+          }),
+        );
+        return '결제처리중 입니다.';
 
-    return '결제처리중 입니다.';
+      case 'exchange2':
+        await lastValueFrom(
+          this.paymentClient.emit(`exchange2_payment`, {
+            orderData,
+          }),
+        );
+        return '결제처리중 입니다.';
+    }
   }
 
   /**
@@ -111,7 +144,7 @@ export class OrdersService {
     // const seekQuery = `
     // SELECT productId, productName, image, price, stock
     // FROM products
-    // WHERE CONCAT(LPAD(price, 10, '0'), LPAD(productId, 10, '0')) > '${cursor}' AND isDeleted = false 
+    // WHERE CONCAT(LPAD(price, 10, '0'), LPAD(productId, 10, '0')) > '${cursor}' AND isDeleted = false
     // ORDER BY price, productId
     // LIMIT 20`;
 
@@ -122,7 +155,11 @@ export class OrdersService {
     ORDER BY price, productId
     LIMIT 20`;
 
-    return this.connectionService.slaveQuery(seekQuery, [price, price, productId]);
+    return this.connectionService.slaveQuery(seekQuery, [
+      price,
+      price,
+      productId,
+    ]);
   }
 
   /**

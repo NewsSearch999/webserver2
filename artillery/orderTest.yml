@@ -1,5 +1,5 @@
 config:
-  target: "http://charm10jo-goten.shop"
+  target: "http://localhost:3000"
   tls:
     rejectUnauthorized: false
   phases:
