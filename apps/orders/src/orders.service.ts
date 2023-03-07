@@ -16,8 +16,8 @@ export class OrdersService {
   constructor(
     private readonly connectionService: ConnectionService,
     private readonly exchangeFunction: ExchangeFunction,
-    @Inject('BILLING') private billingClient: ClientProxy,
-    @Inject('PAYMENT') private paymentClient: ClientProxy,
+    @Inject('billing') private billingClient: ClientProxy,
+    @Inject('payment') private paymentClient: ClientProxy,
   ) {}
 
   async findProductByPK(productId) {
@@ -57,7 +57,7 @@ export class OrdersService {
       switch (exchange) {
         case 'exchange1':
           await lastValueFrom(
-            this.billingClient.emit(`exchange1_order`, {
+            this.billingClient.emit(`exchange1.order`, {
               request,
             }),
           );
@@ -65,7 +65,7 @@ export class OrdersService {
 
         case 'exchange2':
           await lastValueFrom(
-            this.billingClient.emit(`exchange2_order`, {
+            this.billingClient.emit(`exchange2.order`, {
               request,
             }),
           );
@@ -112,7 +112,7 @@ export class OrdersService {
     switch (exchange) {
       case 'exchange1':
         await lastValueFrom(
-          this.paymentClient.emit(`exchange1_payment`, {
+          this.paymentClient.emit(`exchange1.payment`, {
             orderData,
           }),
         );
@@ -120,7 +120,7 @@ export class OrdersService {
 
       case 'exchange2':
         await lastValueFrom(
-          this.paymentClient.emit(`exchange2_payment`, {
+          this.paymentClient.emit(`exchange2.payment`, {
             orderData,
           }),
         );

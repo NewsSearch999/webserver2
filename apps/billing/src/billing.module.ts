@@ -12,7 +12,7 @@ import {
 import { ConnectionService } from './connection/connection.service';
 
 @Module({
-  imports: [RmqModule, AuthModule],
+  imports: [ AuthModule],
   controllers: [BillingController],
   providers: [
     BillingService,

@@ -15,7 +15,7 @@ async function bootstrap() {
       strategy: new RabbitMQServer({
         queue: 'billing',
         exchange: 'exchange1',
-        exchangeType: ExchangeType.DIRECT,
+        exchangeType: ExchangeType.TOPIC,
         urls: [configService.get('RABBIT_MQ_exchange1_URI')],
         noAck: false,  
       })
@@ -24,7 +24,7 @@ async function bootstrap() {
       strategy: new RabbitMQServer({
         queue: 'payment',
         exchange: 'exchange1',
-        exchangeType: ExchangeType.DIRECT,
+        exchangeType: ExchangeType.TOPIC,
         urls: [configService.get('RABBIT_MQ_exchange1_URI')],
         noAck: false,  
       })
@@ -33,7 +33,7 @@ async function bootstrap() {
       strategy: new RabbitMQServer({
         queue: 'billing',
         exchange: 'exchange2',
-        exchangeType: ExchangeType.DIRECT,
+        exchangeType: ExchangeType.TOPIC,
         urls: [configService.get('RABBIT_MQ_exchange2_URI')],
         noAck: false,  
       })
@@ -42,7 +42,7 @@ async function bootstrap() {
       strategy: new RabbitMQServer({
         queue: 'payment',
         exchange: 'exchange2',
-        exchangeType: ExchangeType.DIRECT,
+        exchangeType: ExchangeType.TOPIC,
         urls: [configService.get('RABBIT_MQ_exchange2_URI')],
         noAck: false,
       })

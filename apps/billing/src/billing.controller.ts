@@ -4,7 +4,7 @@ import { BillingService } from './billing.service';
 // import { DenyGuard } from '@app/common/rmq/deny.guard';
 // import * as amqp from 'amqplib';
 import { ConfigService } from '@nestjs/config';
-import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
+import { MessagePattern, Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { RmqService } from '@app/common/rmq/rmq.service';
 
 
@@ -16,7 +16,7 @@ export class BillingController {
     private readonly rmqService: RmqService,
   ) {}
 
-  @EventPattern('exchange1_order')
+  @MessagePattern('exchange1.billing1')
   async subscribeBiling1(@Payload() data: any, @Ctx() context: RmqContext) {
     console.log('exchange1 queue 메시지 :', data);
     await this.billingService.createOrder(data);
@@ -30,7 +30,7 @@ export class BillingController {
   //   errorHandler: ReplyErrorCallback,
   // })
   // @UseGuards(DenyGuard)
-  @EventPattern('exchange2_order')
+  @EventPattern('exchange2.billing2')
   async subscribeBiling2(@Payload() data: any, @Ctx() context: RmqContext) {
     console.log('exchange2 queue 메시지 :', data);
     await this.billingService.createOrder(data)
@@ -44,7 +44,7 @@ export class BillingController {
   //   errorHandler: ReplyErrorCallback,
   // })
   // @UseGuards(DenyGuard)
-  @EventPattern('exchange1_payment')
+  @EventPattern('exchange1.payment1')
   async subscribePayment1(@Payload() orderData: any, @Ctx() context: RmqContext) {
     console.log('exchange1 payment 메시지 :', orderData);
     await this.billingService.payment(orderData);
@@ -59,7 +59,7 @@ export class BillingController {
   //   errorHandler: ReplyErrorCallback,
   // })
   // @UseGuards(DenyGuard)
-  @EventPattern('exchange2_payment')
+  @EventPattern('exchange2.payment2')
   async subscribePayment2(@Payload() orderData: any, @Ctx() context: RmqContext) {
     console.log('exchange2 payment 메시지 :', orderData)
     await this.billingService.payment(orderData);
