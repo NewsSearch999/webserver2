@@ -23,12 +23,12 @@
 ## 💻 **_화면 구성_**
 | 회원가입&로그인 | 주문생성 |
 |:---: | :---: |
-| ![login](https://user-images.githubusercontent.com/98438390/223413005-f1b277c2-3df0-4ddd-8dd2-824613db626a.gif)|![order](https://user-images.githubusercontent.com/98438390/223413479-f71d6570-f306-4542-ab12-683818fa3673.gif)|
+|![login-1](https://user-images.githubusercontent.com/98438390/223464234-5ff357e7-6b4d-43a1-b064-230ceb701870.gif)|![order](https://user-images.githubusercontent.com/98438390/223413479-f71d6570-f306-4542-ab12-683818fa3673.gif)|
 <br/><br/>
 
  |상품검색&무한스크롤 |
  | :---: |
- |![search200per](https://user-images.githubusercontent.com/98438390/223418306-b4669f55-8c70-41bc-b12e-4a15bdc160f8.gif)|
+ |![search-6](https://user-images.githubusercontent.com/98438390/223464310-f990f272-ac1c-4db2-bf37-76fd3da41771.gif)|
  <br/><br/>
 
 
