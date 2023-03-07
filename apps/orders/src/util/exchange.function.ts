@@ -1,5 +1,6 @@
+
 export class ExchangeFunction {
-    randomExchange() {
+    exchangeBalancing() {
         let array = ['exchange1', 'exchange2']
         let idx = (Math.random()>=0.5)? 1 : 0;
         

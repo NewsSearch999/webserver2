@@ -6,12 +6,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConnectionService } from './connection/connection.service';
-import { BILLING_SERVICE, PAYMENT_SERVICE } from './constants/service';
-import { ClientProxy } from '@nestjs/microservices';
-import { lastValueFrom, throwError } from 'rxjs';
 import { orderState } from '@app/common/entity/enum/order.enum';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { CursorFunction } from './util/cursor.fuction';
 import { ExchangeFunction } from './util/exchange.function';
 
 @Injectable()
@@ -53,7 +49,7 @@ export class OrdersService {
         ],
       ]);
 
-      const exchange = this.exchangeFuncion.randomExchange()
+      const exchange = this.exchangeFuncion.exchangeBalancing()
       await this.amqpConnection.publish(exchange, 'BILLING', request);
 
       return order;
@@ -93,7 +89,7 @@ export class OrdersService {
       throw new HttpException('재고가 부족합니다', 403);
 
     /**메세지큐(결제 데이터 전송)*/
-    const exchange = this.exchangeFuncion.randomExchange()
+    const exchange = this.exchangeFuncion.exchangeBalancing()
     await this.amqpConnection.publish(exchange, 'PAYMENT', orderData);
 
     return '결제처리중 입니다.';

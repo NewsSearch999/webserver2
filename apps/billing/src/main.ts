@@ -1,4 +1,3 @@
-// import { RmqService } from '@app/common/rmq/rmq.service';
 import { NestFactory } from '@nestjs/core';
 import { BillingModule } from './billing.module';
 
@@ -10,4 +9,4 @@ async function bootstrap() {
   // await app.startAllMicroservices()
 
 }
-void bootstrap();
+bootstrap();
