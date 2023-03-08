@@ -2,7 +2,7 @@ version: '2'
 
 services:
   orders:
-    image: ${{secrets.AWS_ECR_URL}}:orders
+    image: 333107818315.dkr.ecr.ap-northeast-2.amazonaws.com/super-order:orders
     build:
       context: .
       dockerfile: ./apps/orders/Dockerfile
@@ -16,7 +16,7 @@ services:
       - '3000:3000'
 
   billing:
-    image: ${{secrets.AWS_ECR_URL}}:billing
+    image: 333107818315.dkr.ecr.ap-northeast-2.amazonaws.com/super-order:billing
     build:
       context: .
       dockerfile: ./apps/billing/Dockerfile
