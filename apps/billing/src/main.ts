@@ -8,7 +8,7 @@ ExchangeType,
 import { ConfigService } from '@nestjs/config';
 const configService = new ConfigService()
 async function bootstrap() {
-    await NestFactory.create(BillingModule)
+    const app = await NestFactory.create(BillingModule)
     // app.connectMicroservice<MicroserviceOptions>({
     //   strategy: new RabbitMQServer({
     //     queue: 'billing1',
@@ -46,6 +46,7 @@ async function bootstrap() {
     //   })
     // })
     // await app.startAllMicroservices();
+    app.listen(3001);
 
 }
 bootstrap();
