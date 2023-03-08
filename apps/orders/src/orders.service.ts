@@ -6,20 +6,37 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConnectionService } from './connection/connection.service';
-import { BILLING_SERVICE, PAYMENT_SERVICE } from './constants/service';
-import { ClientProxy } from '@nestjs/microservices';
-import { lastValueFrom, throwError } from 'rxjs';
 import { orderState } from '@app/common/entity/enum/order.enum';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { CursorFunction } from './util/cursor.fuction';
+import { ExchangeFunction } from './util/exchange.function';
+import { ClientProxy } from '@nestjs/microservices';
+import { from, lastValueFrom } from 'rxjs';
+import { BILLING } from './constants/service';
+import { PAYMENT } from './constants/service';
+import { RabbitmqChannelProvider } from './connection/rabbitmq-channel.provider';
 
 @Injectable()
 export class OrdersService {
+  private channel: any;
   constructor(
     private readonly connectionService: ConnectionService,
-    private readonly amqpConnection: AmqpConnection,
-    private readonly cursorFunction: CursorFunction, // @Inject(BILLING_SERVICE) private billingClient: ClientProxy, // @Inject(PAYMENT_SERVICE) private paymentClient: ClientProxy,
-  ) {}
+    private readonly exchangeFunction: ExchangeFunction,
+    private readonly rabbitmqChannelProvider: RabbitmqChannelProvider,
+    @Inject(BILLING) private billingClient: ClientProxy,
+    @Inject(PAYMENT) private paymentClient: ClientProxy,
+  ) {
+    const channel = this.rabbitmqChannelProvider
+      .createChannel()
+      .then((channel) => {
+        channel.assertQueue('billing1');
+        channel.assertQueue('billing2');
+        channel.assertQueue('payment1');
+        channel.assertQueue('payment2');
+        channel.bindQueue('billing1', 'exchange1', 'exchange1.billing1');
+        channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
+        channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
+        channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
+      });
+  }
 
   async findProductByPK(productId) {
     const searchQuery = `SELECT * FROM products WHERE productId = (?)`;
@@ -29,36 +46,38 @@ export class OrdersService {
     return product;
   }
 
+  async onModuleInit(): Promise<void> {
+    this.channel = await this.rabbitmqChannelProvider.createChannel();
+    await this.channel.assertQueue('billing1');
+    await this.channel.assertQueue('payment1');
+    await this.channel.assertQueue('billing2');
+    await this.channel.assertQueue('payment2');
+    await this.channel.bindQueue('billing1', 'exchange1', 'exchange1.billing1');
+    await this.channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
+    await this.channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
+    await this.channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
+  }
+
   /**
    * 주문 생성
    * @param request
    * @returns
    */
-  async createOrder(request) {
-    const createQuery = `INSERT INTO orders (productId, quantity, price, orderState, deliveryState,userId) values (?)`;
+  async createOrder(request: object) {
     try {
-      const product = await this.findProductByPK(request.productId);
-      if (!product[0]) throw new HttpException('상품정보가 없습니다', 403);
-      const order = await this.connectionService.masterQuery(createQuery, [
-        [
-          request.productId,
-          request.quantity,
-          product[0].price,
-          request.orderState,
-          request.deliveryState,
-          request.userId,
-        ],
-      ]);
-      // await lastValueFrom(
-      //   this.billingClient.emit('order_created', {
-      //     request,
-      //   }),
-      // );
+      //balanceArr = [exchange1 or 2, billing1 or 2, payment1 or 2]
+      const [exchangeName, billingQueue, paymentQueue] =
+        this.exchangeFunction.exchangeBalancing();
 
-      await this.amqpConnection.publish('exchange1', 'BILLING', request);
-
-      return order;
+      //publish(exchange: string, routingKey: string, content: Buffer, options?: Options.Publish): boolean;
+      const result = await this.channel.publish(
+        exchangeName,
+        `${exchangeName}.${billingQueue}`,
+        Buffer.from(JSON.stringify(request)),
+      );
+      return `${result}: 주문처리 중입니다.`;
     } catch (err) {
+      console.error(err);
       throw err;
     }
   }
@@ -94,15 +113,22 @@ export class OrdersService {
       throw new HttpException('재고가 부족합니다', 403);
 
     /**메세지큐(결제 데이터 전송)*/
+    //balanceArr = [exchange1 or 2, billing1 or 2, payment1 or 2]
+    const [exchangeName, billingQueue, paymentQueue] =
+      this.exchangeFunction.exchangeBalancing();
+    const result = await this.channel.publish(
+      exchangeName,
+      `${exchangeName}.${paymentQueue}`,
+      Buffer.from(JSON.stringify(orderData)),
+    );
+    return `${result}: 결제처리 중입니다.`;
+
     // await lastValueFrom(
-    //   this.paymentClient.emit('order_payment', {
+    //   this.paymentClient.emit(`${balanceArr[0]}.${balanceArr[2]}`, {
     //     orderData,
     //   }),
     // );
-
-    await this.amqpConnection.publish('exchange1', 'PAYMENT', orderData);
-
-    return '결제처리중 입니다.';
+    // return '결제처리중 입니다.';
   }
 
   /**
