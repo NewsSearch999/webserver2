@@ -14,7 +14,7 @@ import { AuthModule } from './auth/auth.module';
 import { BILLING, CONNECTION_NAME1, PAYMENT } from './constants/service';
 import { CONNECTION_NAME2 } from './constants/service';
 import { ExchangeFunction } from './util/exchange.function';
-import { RabbitmqChannelProvider } from './connection/rabbitmq-channel.provider';
+import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
 
 @Module({
   imports: [
@@ -24,14 +24,14 @@ import { RabbitmqChannelProvider } from './connection/rabbitmq-channel.provider'
     TypeOrmModule.forFeature([Product, Order]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     //메시지큐 부하분산
-    RmqModule.register({
-      name: BILLING,
-      exchange: 'exchange1',
-    }),
-    RmqModule.register({
-      name: PAYMENT,
-      exchange: 'exchange2',
-    }),
+    // RmqModule.register({
+    //   name: BILLING,
+    //   exchange: 'exchange1',
+    // }),
+    // RmqModule.register({
+    //   name: PAYMENT,
+    //   exchange: 'exchange2',
+    // }),
   ],
   controllers: [OrdersController],
   providers: [

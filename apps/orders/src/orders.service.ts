@@ -8,11 +8,11 @@ import {
 import { ConnectionService } from './connection/connection.service';
 import { orderState } from '@app/common/entity/enum/order.enum';
 import { ExchangeFunction } from './util/exchange.function';
-import { ClientProxy } from '@nestjs/microservices';
-import { from, lastValueFrom } from 'rxjs';
-import { BILLING } from './constants/service';
-import { PAYMENT } from './constants/service';
-import { RabbitmqChannelProvider } from './connection/rabbitmq-channel.provider';
+// import { ClientProxy } from '@nestjs/microservices';
+// import { from, lastValueFrom } from 'rxjs';
+// import { BILLING } from './constants/service';
+// import { PAYMENT } from './constants/service';
+import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
 
 @Injectable()
 export class OrdersService {
@@ -21,21 +21,9 @@ export class OrdersService {
     private readonly connectionService: ConnectionService,
     private readonly exchangeFunction: ExchangeFunction,
     private readonly rabbitmqChannelProvider: RabbitmqChannelProvider,
-    @Inject(BILLING) private billingClient: ClientProxy,
-    @Inject(PAYMENT) private paymentClient: ClientProxy,
-  ) {
-    const channel = this.rabbitmqChannelProvider.createChannel()
-    .then((channel) => {
-      channel.assertQueue('billing1');
-      channel.assertQueue('billing2');
-      channel.assertQueue('payment1');
-      channel.assertQueue('payment2');
-      channel.bindQueue('billing1', 'exchange1', 'exchange1.billing1');
-      channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
-      channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
-      channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
-    });
-    }
+  ) // @Inject(BILLING) private billingClient: ClientProxy,
+  // @Inject(PAYMENT) private paymentClient: ClientProxy,
+  {}
 
   async findProductByPK(productId) {
     const searchQuery = `SELECT * FROM products WHERE productId = (?)`;
@@ -45,18 +33,6 @@ export class OrdersService {
     return product;
   }
 
-  async onModuleInit(): Promise<void> {
-    this.channel = await this.rabbitmqChannelProvider.createChannel();
-    await this.channel.assertQueue('billing1');
-    await this.channel.assertQueue('payment1');
-    await this.channel.assertQueue('billing2');
-    await this.channel.assertQueue('payment2');
-    await this.channel.bindQueue('billing1', 'exchange1', 'exchange1.billing1');
-    await this.channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
-    await this.channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
-    await this.channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
-  }
-
   /**
    * 주문 생성
    * @param request
@@ -64,18 +40,22 @@ export class OrdersService {
    */
   async createOrder(request: object) {
     try {
-
       //balanceArr = [exchange1 or 2, billing1 or 2, payment1 or 2]
       const [exchangeName, billingQueue, paymentQueue] =
         this.exchangeFunction.exchangeBalancing();
 
+      const channel = await this.rabbitmqChannelProvider.createChannel();
+      
       //publish(exchange: string, routingKey: string, content: Buffer, options?: Options.Publish): boolean;
-      const result = await this.channel.publish(
+      channel.publish(
         exchangeName,
         `${exchangeName}.${billingQueue}`,
         Buffer.from(JSON.stringify(request)),
       );
-      return `${result}: 주문처리 중입니다.`;
+
+      await channel.close();
+
+      return `${request}: 주문처리 중입니다.`;
     } catch (err) {
       console.error(err);
       throw err;
