@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { RmqModule, RmqService } from '@app/common';
 import { BillingController } from './billing.controller';
 import { BillingService } from './billing.service';
 import {
@@ -8,7 +7,7 @@ import {
   ExchangeType,
 } from '@lukadriel/nestjs-rabbitmq-transporter';
 import { ConnectionService } from './connection/connection.service';
-import { RabbitmqChannelProvider } from './connection/rabbitmq-channel.provider';
+import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
 import { ConfigService } from '@nestjs/config';
 
 @Module({
@@ -19,7 +18,6 @@ import { ConfigService } from '@nestjs/config';
     ConnectionService,
     ConfigService,
     RabbitmqChannelProvider,
-    RmqService
     // {
     //   provide: 'BILLING',
     //   useFactory: (configService: ConfigService) => {
