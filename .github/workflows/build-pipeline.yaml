@@ -26,3 +26,4 @@ jobs:
         run: |
           docker-compose -f docker-comse.aws.yml --env-file ./libs/.libs.env build
           docker-compose -f docker-comse.aws.yml --env-file ./libs/.libs.env push
+
