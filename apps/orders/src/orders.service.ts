@@ -20,9 +20,8 @@ export class OrdersService {
   constructor(
     private readonly connectionService: ConnectionService,
     private readonly exchangeFunction: ExchangeFunction,
-    private readonly rabbitmqChannelProvider: RabbitmqChannelProvider,
-  ) // @Inject(BILLING) private billingClient: ClientProxy,
-  // @Inject(PAYMENT) private paymentClient: ClientProxy,
+    private readonly rabbitmqChannelProvider: RabbitmqChannelProvider, // @Inject(BILLING) private billingClient: ClientProxy,
+  ) // @Inject(PAYMENT) private paymentClient: ClientProxy,
   {}
 
   async findProductByPK(productId) {
@@ -168,9 +167,6 @@ export class OrdersService {
       lastPrice,
       productName,
       productId,
-      lastPrice,
-      productId,
-      productName,
     ]);
   }
 

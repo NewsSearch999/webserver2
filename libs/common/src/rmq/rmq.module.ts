@@ -5,7 +5,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 interface RmqModuleOptions {
   name: string;
-  exchange: string
+  exchange: string;
 }
 
 // export class RmqModule {
@@ -64,11 +64,13 @@ export class RmqModule {
               transport: Transport.RMQ,
               options: {
                 urls: [configService.get<string>(`RABBIT_MQ_URI`)],
-                queue: configService.get<string>(`RABBIT_MQ_${exchange}_${name}_QUEUE`),
+                queue: configService.get<string>(
+                  `RABBIT_MQ_${exchange}_${name}_QUEUE`,
+                ),
                 noAck: false,
                 prefetchCount: 1, // 소비자가 RabbitMQ로부터 수신할 수 있는 메시지 수. 위의 channel prefetchCount와 다르다.
-                exchange : exchange,
-                persistent: true
+                exchange: exchange,
+                persistent: true,
               },
             }),
             inject: [ConfigService],
