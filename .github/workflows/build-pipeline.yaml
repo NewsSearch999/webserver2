@@ -43,5 +43,5 @@ jobs:
 
       - name: Build, tag, and push image to Amazon ECR
         run: |
-          docker-compose -f docker-comse.aws.yml --env-file ./libs/.libs.env build
-          docker-compose -f docker-comse.aws.yml --env-file ./libs/.libs.env push
+          docker-compose -f docker-compose.aws.yml --env-file ./libs/.libs.env build
+          docker-compose -f docker-compose.aws.yml --env-file ./libs/.libs.env push
