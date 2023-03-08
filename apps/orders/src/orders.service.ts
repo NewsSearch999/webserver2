@@ -49,12 +49,12 @@ export class OrdersService {
   async onModuleInit(): Promise<void> {
     this.channel = await this.rabbitmqChannelProvider.createChannel();
     await this.channel.assertQueue('billing1');
-    await this.channel.assertQueue('payment1');
     await this.channel.assertQueue('billing2');
+    await this.channel.assertQueue('payment1');
     await this.channel.assertQueue('payment2');
     await this.channel.bindQueue('billing1', 'exchange1', 'exchange1.billing1');
-    await this.channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
     await this.channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
+    await this.channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
     await this.channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
   }
 
