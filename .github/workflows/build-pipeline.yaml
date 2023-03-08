@@ -25,6 +25,6 @@ jobs:
 
       - name: Build, tag, and push image to Amazon ECR
         run: |
-          docker-compose -f docker-compose.aws.yml build
-          docker push ${{secrets.AWS_ECR_REGISTER}}/${{secrets.AWS_ECR_REGISTER}}:orders
-          docker push ${{secrets.AWS_ECR_REGISTER}}/${{secrets.AWS_ECR_REGISTER}}:billing
+          docker-compose -f docker-compose.build.yml build
+          docker push ${{secrets.AWS_ECR_URL}}:orders
+          docker push ${{secrets.AWS_ECR_URL}}:billing
