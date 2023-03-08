@@ -8,12 +8,15 @@ import {
   EventPattern,
 } from '@nestjs/microservices';
 import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
+import { Channel, connect } from 'amqplib/callback_api';
+import { ConfigService } from '@nestjs/config';
 
 @Controller()
 export class BillingController implements OnModuleInit {
   constructor(
     private readonly billingService: BillingService,
     private readonly rabbitmqChannelProvider: RabbitmqChannelProvider,
+    private configService: ConfigService,
   ) {
     // this.rabbitmqChannelProvider.createChannel().then((channel) => {
     //   channel.assertQueue('billing1');
@@ -27,47 +30,92 @@ export class BillingController implements OnModuleInit {
     // });
   }
 
+  // async onModuleInit(): Promise<void> {
+  //   const channel = await this.rabbitmqChannelProvider.createChannel();
+  // // await channel.assertQueue('billing1');
+  // // await channel.assertQueue('payment1');
+  // // await channel.assertQueue('billing2');
+  // // await channel.assertQueue('payment2');
+  // // await channel.bindQueue('billing1', 'exchange1', 'exchange1.billing1');
+  // // await channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
+  // // await channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
+  // // await channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
+
+  // await channel.consume('billing1', (msg) => {
+  //   this.billingService.createOrder(JSON.parse(msg.content.toString()));
+  //   channel.ack(msg)
+  //   console.log('Received billing message:', JSON.parse(msg.content.toString()));
+  // }, { noAck : false});
+  // await channel.close();
+
+  // await channel.consume('payment1', (msg) => {
+  //   this.billingService.payment(JSON.parse(msg.content.toString()));
+  //   channel.ack(msg)
+  //   console.log('Received payment message:', JSON.parse(msg.content.toString()));
+  // }, { noAck : false});
+  // await channel.close();
+
+  // await channel.consume('billing2', (msg) => {
+  //   this.billingService.createOrder(JSON.parse(msg.content.toString()));
+  //   channel.ack(msg)
+  //   console.log('Received billing message:', JSON.parse(msg.content.toString()));
+  // }, { noAck : false});
+  // await channel.close();
+
+  // await channel.consume('payment2', (msg) => {
+  //   this.billingService.payment(JSON.parse(msg.content.toString()));
+  //   channel.ack(msg)
+  //   console.log('Received payment message:', JSON.parse(msg.content.toString()));
+  // }, { noAck : false});
+  // await channel.close();
+  // }
+
   async onModuleInit(): Promise<void> {
-    const channel = await this.rabbitmqChannelProvider.createChannel();
-  // await channel.assertQueue('billing1');
-  // await channel.assertQueue('payment1');
-  // await channel.assertQueue('billing2');
-  // await channel.assertQueue('payment2');
-  // await channel.bindQueue('billing1', 'exchange1', 'exchange1.billing1');
-  // await channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
-  // await channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
-  // await channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
+    try {
+      const rabbitmqUrl = this.configService.get<string>('RABBIT_MQ_URI');
+      connect(rabbitmqUrl, (error0, connection) => {
+        if (error0) {
+          console.log(`error0 : ${error0}`)
+          throw error0;
+        }
+        connection.createChannel((error1, channel) => {
+          if (error1) {
+            console.log(`error1 : ${error1}`)
+            throw error1;
+          }
+          channel.assertExchange('exchange1', 'direct', { durable: true });
+          channel.assertQueue('billing1');
+          channel.bindQueue('billing1', 'exchange1', 'exchage1.billing1');
 
-  await channel.consume('billing1', (msg) => {
-    this.billingService.createOrder(JSON.parse(msg.content.toString())); 
-    channel.ack(msg)
-    console.log('Received billing message:', JSON.parse(msg.content.toString()));
-  }, { noAck : false});
-  await channel.close();
+          channel.consume(
+            'billing1',
+            (msg) => {
+              this.billingService.createOrder(
+                JSON.parse(msg.content.toString()),
+              );
+              channel.ack(msg);
+              console.log(
+                'Received billing message:',
+                JSON.parse(msg.content.toString()),
+              );
 
-  await channel.consume('payment1', (msg) => {
-    this.billingService.payment(JSON.parse(msg.content.toString())); 
-    channel.ack(msg)
-    console.log('Received payment message:', JSON.parse(msg.content.toString()));
-  }, { noAck : false});
-  await channel.close();
-
-  await channel.consume('billing2', (msg) => {
-    this.billingService.createOrder(JSON.parse(msg.content.toString())); 
-    channel.ack(msg)
-    console.log('Received billing message:', JSON.parse(msg.content.toString()));
-  }, { noAck : false});
-  await channel.close();
-
-  await channel.consume('payment2', (msg) => {
-    this.billingService.payment(JSON.parse(msg.content.toString())); 
-    channel.ack(msg)
-    console.log('Received payment message:', JSON.parse(msg.content.toString()));
-  }, { noAck : false});
-  await channel.close();
+             
+            },
+            { noAck: false },
+          );
+        });
+        connection.on('close', (error2) => {
+          console.log(`error2 : ${error2}`)
+          throw error2;
+        });
+      });
+    } catch (e) {
+      console.log(e);
+      throw new Error(e.response);
+    }
   }
 
-  @MessagePattern('exchange1.billing1')
+  // @MessagePattern('exchange1.billing1')
   async subscribeBilling1(message: any): Promise<void> {
     const channel = await this.rabbitmqChannelProvider.createChannel();
     try {
@@ -121,9 +169,7 @@ export class BillingController implements OnModuleInit {
       await channel.consume(
         'payment1',
         (message) => {
-          this.billingService.payment(
-            JSON.parse(message.content.toString()),
-          );
+          this.billingService.payment(JSON.parse(message.content.toString()));
           channel.ack(message);
         },
         { noAck: false },
@@ -144,9 +190,7 @@ export class BillingController implements OnModuleInit {
       await channel.consume(
         'payment2',
         (message) => {
-          this.billingService.payment(
-            JSON.parse(message.content.toString()),
-          );
+          this.billingService.payment(JSON.parse(message.content.toString()));
           channel.ack(message);
         },
         { noAck: false },

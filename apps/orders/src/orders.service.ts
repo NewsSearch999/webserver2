@@ -46,11 +46,12 @@ export class OrdersService {
       const channel = await this.rabbitmqChannelProvider.createChannel();
 
       //publish(exchange: string, routingKey: string, content: Buffer, options?: Options.Publish): boolean;
-      channel.publish(
-        exchangeName,
-        `${exchangeName}.${billingQueue}`,
-        Buffer.from(JSON.stringify(request)),
-      );
+      // channel.publish(
+      //   exchangeName,
+      //   `${exchangeName}.${billingQueue}`,
+      //   Buffer.from(JSON.stringify(request)),
+      // );
+      channel.sendToQueue(billingQueue, Buffer.from(JSON.stringify(request)))
 
       await channel.close();
 
