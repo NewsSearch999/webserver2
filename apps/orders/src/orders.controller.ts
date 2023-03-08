@@ -16,12 +16,12 @@ import { IdPipe } from './pipes/id.pipe';
 import { NumberPipe } from './pipes/number.pipe';
 import { StringPipe } from './pipes/string.pipe';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Order')
 @Controller()
 export class OrdersController {
-  constructor(
-    private readonly ordersService: OrdersService,
-    ) {}
+  constructor(private readonly ordersService: OrdersService) {}
 
   /**
    * 주문생성
@@ -32,7 +32,7 @@ export class OrdersController {
   @Post('orders')
   async createOrder(@Body() orderDto: OrderDto, @Req() req) {
     // const { userId } = req.user; //주문자 ID
-    let userId =1002
+    let userId = 1002;
     const request = {
       productId: orderDto.productId,
       quantity: orderDto.quantity,
@@ -124,12 +124,11 @@ export class OrdersController {
   }
 
   /**
-   * 
+   *
    * ALB 헬스체크 경로
    */
   @Get('/')
-  healthCheck(){
-    console.log('orders app healthcheck')
+  healthCheck() {
+    console.log('orders app healthcheck');
   }
-
 }
