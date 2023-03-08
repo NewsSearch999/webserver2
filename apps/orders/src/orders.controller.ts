@@ -8,7 +8,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { OrderDto } from './dto/order.dto';
+import { GetOrderDto, OrderDto } from './dto/order.dto';
 import { deliveryState } from '@app/common/entity/enum/delivery.enum';
 import { orderState } from '@app/common/entity/enum/order.enum';
 import { OrdersService } from './orders.service';
@@ -16,7 +16,15 @@ import { IdPipe } from './pipes/id.pipe';
 import { NumberPipe } from './pipes/number.pipe';
 import { StringPipe } from './pipes/string.pipe';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiParam,
+  ApiProperty,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { number } from 'joi';
+import { getProductDto } from './dto/product.dto';
 
 @ApiTags('Order')
 @Controller()
@@ -30,6 +38,8 @@ export class OrdersController {
    */
   // @UseGuards(AuthGuard())
   @Post('orders')
+  @ApiOperation({ summary: '주문생성' })
+  @ApiResponse({ status: 201, description: '주문생성 완료' })
   async createOrder(@Body() orderDto: OrderDto, @Req() req) {
     // const { userId } = req.user; //주문자 ID
     let userId = 1002;
@@ -51,6 +61,9 @@ export class OrdersController {
    */
   @UseGuards(AuthGuard())
   @Put('orders/:orderid')
+  @ApiOperation({ summary: '주문결제' })
+  @ApiResponse({ status: 201, description: '주문처리중' })
+  @ApiParam({ name: 'orderId', type: number, description: '주문ID' })
   async paymentOrder(
     @Param('orderid', NumberPipe) orderId: number,
     @Req() req,
@@ -65,6 +78,13 @@ export class OrdersController {
    */
   @UseGuards(AuthGuard())
   @Get('orders')
+  @ApiOperation({ summary: '주문조회' })
+  @ApiResponse({
+    status: 200,
+    description: '주문리스트',
+    type: GetOrderDto,
+    isArray: true,
+  })
   async getOrders(@Req() req) {
     const { userId } = req.user;
     return this.ordersService.getOrders(userId);
@@ -78,6 +98,15 @@ export class OrdersController {
    * @returns
    */
   @Get('main/:price/:productid')
+  @ApiOperation({ summary: '메인페이지 상품 리스트' })
+  @ApiParam({ name: 'price', description: '검색가격', required: false })
+  @ApiParam({ name: 'productId', description: '검색상품Id', required: false })
+  @ApiResponse({
+    status: 200,
+    description: '상품리스트',
+    type: getProductDto,
+    isArray: true,
+  })
   async getProducts(
     @Param('price', NumberPipe) price: number,
     @Param('productid', IdPipe) productId?: number,
@@ -105,6 +134,16 @@ export class OrdersController {
    * @returns
    */
   @Get('search/:productname/:price/:productid')
+  @ApiOperation({ summary: '상품검색 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '상품리스트',
+    type: getProductDto,
+    isArray: true,
+  })
+  @ApiParam({ name: 'productName', description: '상품검색이름' })
+  @ApiParam({ name: 'price', description: '검색가격' })
+  @ApiParam({ name: 'productid', description: '검색상품ID' })
   async findProducts(
     @Param('productname', StringPipe) productName: string,
     @Param('price', NumberPipe) price: number,
@@ -128,6 +167,7 @@ export class OrdersController {
    * ALB 헬스체크 경로
    */
   @Get('/')
+  @ApiOperation({ summary: '헬스체크 루트경로' })
   healthCheck() {
     console.log('orders app healthcheck');
   }
