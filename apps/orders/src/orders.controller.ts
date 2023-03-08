@@ -16,13 +16,11 @@ import { IdPipe } from './pipes/id.pipe';
 import { NumberPipe } from './pipes/number.pipe';
 import { StringPipe } from './pipes/string.pipe';
 import { AuthGuard } from '@nestjs/passport';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 
 @Controller()
 export class OrdersController {
   constructor(
     private readonly ordersService: OrdersService,
-    private readonly amqpConnection : AmqpConnection
     ) {}
 
   /**
@@ -30,11 +28,11 @@ export class OrdersController {
    * @body productId, quantity
    * @returns
    */
-  @UseGuards(AuthGuard())
+  // @UseGuards(AuthGuard())
   @Post('orders')
   async createOrder(@Body() orderDto: OrderDto, @Req() req) {
-    const { userId } = req.user; //주문자 ID
-    // let userId = Math.floor(Math.random() * 1000)
+    // const { userId } = req.user; //주문자 ID
+    let userId =1002
     const request = {
       productId: orderDto.productId,
       quantity: orderDto.quantity,
@@ -42,7 +40,6 @@ export class OrdersController {
       deliveryState: deliveryState.결제대기,
       userId: userId,
     };
-    console.log(request)
     return this.ordersService.createOrder(request);
   }
 
@@ -135,17 +132,4 @@ export class OrdersController {
     console.log('orders app healthcheck')
   }
 
-    /**
-   * 
-   * RMQ의 클라이언트와의 통신 테스트 경로
-   */
-  @Get('rpc')
-  async getRpc() {
-    const response = await this.amqpConnection.request({
-      exchange: 'exchange1',
-      routingKey: 'rpc',
-    });
-
-    return response;
-  }
 }
