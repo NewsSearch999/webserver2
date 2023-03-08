@@ -15,7 +15,7 @@ export class ConnectionService {
       user: configService.get<string>('DB_USER'),
       database: configService.get<string>('DB_NAME'),
       password: configService.get<string>('DB_PASSWORD'),
-      connectionLimit: 500,
+  
     });
 
     this.slaveConnection = connection.createPool({
@@ -24,7 +24,6 @@ export class ConnectionService {
       user: configService.get<string>('DB_USER'),
       database: configService.get<string>('DB_NAME'),
       password: configService.get<string>('DB_PASSWORD'),
-      connectionLimit: 500,
     });
   }
 

@@ -20,9 +20,8 @@ export class OrdersService {
   constructor(
     private readonly connectionService: ConnectionService,
     private readonly exchangeFunction: ExchangeFunction,
-    private readonly rabbitmqChannelProvider: RabbitmqChannelProvider,
-  ) // @Inject(BILLING) private billingClient: ClientProxy,
-  // @Inject(PAYMENT) private paymentClient: ClientProxy,
+    private readonly rabbitmqChannelProvider: RabbitmqChannelProvider, // @Inject(BILLING) private billingClient: ClientProxy,
+  ) // @Inject(PAYMENT) private paymentClient: ClientProxy,
   {}
 
   async findProductByPK(productId) {
@@ -47,12 +46,12 @@ export class OrdersService {
       const channel = await this.rabbitmqChannelProvider.createChannel();
 
       //publish(exchange: string, routingKey: string, content: Buffer, options?: Options.Publish): boolean;
-      // channel.publish(
-      //   exchangeName,
-      //   `${exchangeName}.${billingQueue}`,
-      //   Buffer.from(JSON.stringify(request)),
-      // );
-      channel.sendToQueue(billingQueue, Buffer.from(JSON.stringify(request)))
+      channel.publish(
+        exchangeName,
+        `${exchangeName}.${billingQueue}`,
+        Buffer.from(JSON.stringify(request)),
+      );
+      // channel.sendToQueue(billingQueue, Buffer.from(JSON.stringify(request)))
 
       await channel.close();
 
@@ -97,12 +96,15 @@ export class OrdersService {
     //balanceArr = [exchange1 or 2, billing1 or 2, payment1 or 2]
     const [exchangeName, billingQueue, paymentQueue] =
       this.exchangeFunction.exchangeBalancing();
-    const result = await this.channel.publish(
+
+    const channel = await this.rabbitmqChannelProvider.createChannel();
+
+    channel.publish(
       exchangeName,
       `${exchangeName}.${paymentQueue}`,
       Buffer.from(JSON.stringify(orderData)),
     );
-    return `${result}: 결제처리 중입니다.`;
+    return `${orderData}: 결제처리 중입니다.`;
 
     // await lastValueFrom(
     //   this.paymentClient.emit(`${balanceArr[0]}.${balanceArr[2]}`, {

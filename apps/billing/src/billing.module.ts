@@ -8,81 +8,31 @@ import {
 } from '@lukadriel/nestjs-rabbitmq-transporter';
 import { ConnectionService } from './connection/connection.service';
 import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import * as Joi from 'joi'
 
 @Module({
-  imports: [ ],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: Joi.object({
+        RABBIT_MQ_URI: Joi.string().required(),
+        MASTER_DB_HOST: Joi.string().required(),
+        SLAVE1_DB_HOST: Joi.string().required(),
+        DB_USER: Joi.string().required(),
+        DB_PASSWORD : Joi.string().required(),
+        DB_NAME : Joi.string().required(),
+        DB_PORT : Joi.number().required()
+      }),
+      envFilePath: ['./libs/.libs.env'],
+    }),
+  ],
   controllers: [BillingController],
   providers: [
     BillingService,
     ConnectionService,
-    ConfigService,
-    RabbitmqChannelProvider,
-    // {
-    //   provide: 'BILLING',
-    //   useFactory: (configService: ConfigService) => {
-    //     return new RabbitMQClient({
-    //       urls: [configService.get('RABBIT_MQ_URI')],
-    //       exchange: 'exchange1',
-    //       exchangeType: ExchangeType.DIRECT,
-    //       queue: 'billing',
-    //       replyQueue: 'billingReply',
-    //       replyQueueOptions: {
-    //         exclusive: true,
-    //       },
-    //       noAck: false,
-    //     });
-    //   },inject: [ConfigService],
-    // },
-    // {
-    //   provide: 'BILLING',
-    //   useFactory: (configService: ConfigService) => {
-    //     return new RabbitMQClient({
-    //       urls: [configService.get('RABBIT_MQ_URI')],
-    //       exchange: 'exchange2',
-    //       exchangeType: ExchangeType.DIRECT,
-    //       queue: 'billing',
-    //       replyQueue: 'billingReply',
-    //       replyQueueOptions: {
-    //         exclusive: true,
-    //       },
-    //       noAck: false,
-    //     });
-    //   },inject: [ConfigService],
-    // },
-    // {
-    //   provide: 'PAYMENT',
-    //   useFactory: (configService: ConfigService) => {
-    //     return new RabbitMQClient({
-    //       urls: [configService.get('RABBIT_MQ_URI')],
-    //       exchange: 'exchange1',
-    //       exchangeType: ExchangeType.DIRECT,
-    //       queue: 'payment',
-    //       replyQueue: 'paymentReply',
-    //       replyQueueOptions: {
-    //         exclusive: true,
-    //       },
-    //       noAck: false,
-    //     });
-    //   },inject: [ConfigService],
-    // },
-    // {
-    //   provide: 'PAYMENT',
-    //   useFactory: (configService: ConfigService) => {
-    //     return new RabbitMQClient({
-    //       urls: [configService.get('RABBIT_MQ_URI')],
-    //       exchange: 'exchange2',
-    //       exchangeType: ExchangeType.DIRECT,
-    //       queue: 'payment',
-    //       replyQueue: 'paymentReply',
-    //       replyQueueOptions: {
-    //         exclusive: true,
-    //       },
-    //       noAck: false,
-    //     });
-    //   },inject: [ConfigService],
-    // },
-    
+    RabbitmqChannelProvider
   ],
+  exports: [ConnectionService, RabbitmqChannelProvider ]
 })
 export class BillingModule {}
