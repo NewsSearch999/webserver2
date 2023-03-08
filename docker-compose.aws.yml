@@ -2,26 +2,26 @@ version: '2'
 
 services:
   orders:
-    image: ${{secrets.AWS_ECR_REGISTER}}/${{secrets.AWS_ECR_REGISTER}}:orders
+    image: ${{secrets.ECR_REGISTRY}}/${{secrets.ECR_REPOSITORY}}:orders
     build:
       context: .
       dockerfile: ./apps/orders/Dockerfile
-    # command: npm run start:dev orders
-    # volumes:
-    #   - .:/usr/src/app
-    #   - /usr/src/app/node_modules
-    # ports:
-    #   - '3000:3000'
+    command: npm run start:dev orders
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - '3000:3000'
 
   billing:
-    image: ${{secrets.AWS_ECR_REGISTER}}/${{secrets.AWS_ECR_REGISTER}}:billing
+    image: ${{secrets.ECR_REGISTRY}}/${{secrets.ECR_REPOSITORY}}:billing
     build:
       context: .
       dockerfile: ./apps/billing/Dockerfile
-    # command: npm run start:dev billing
-    # volumes:
-    #   - .:/usr/src/app
-    #   - /usr/src/app/node_modules
+    command: npm run start:dev billing
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
 
   # rabbitmq:
   #   image: ${ECR_REGISTRY}/rabbitmq:latest
