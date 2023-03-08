@@ -18,13 +18,11 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build, tag, and push image to Amazon ECR
         run: |
-          docker-compose -f docker-compose.build.yml build
-          docker push ${{secrets.AWS_ECR_URL}}:orders
-          docker push ${{secrets.AWS_ECR_URL}}:billing
+          docker-compose -f docker-comse.aws.yml --env-file ./libs/.libs.env build
+          docker-compose -f docker-comse.aws.yml --env-file ./libs/.libs.env push
