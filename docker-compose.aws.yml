@@ -2,7 +2,7 @@ version: '2'
 
 services:
   orders:
-    image: ${{secrets.ECR_REGISTRY}}/${{secrets.ECR_REPOSITORY}}:orders
+    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:orders
     build:
       context: .
       dockerfile: ./apps/orders/Dockerfile
@@ -14,7 +14,7 @@ services:
       - '3000:3000'
 
   billing:
-    image: ${{secrets.ECR_REGISTRY}}/${{secrets.ECR_REPOSITORY}}:billing
+    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:billing
     build:
       context: .
       dockerfile: ./apps/billing/Dockerfile
