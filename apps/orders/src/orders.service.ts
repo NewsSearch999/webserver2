@@ -24,7 +24,8 @@ export class OrdersService {
     @Inject(BILLING) private billingClient: ClientProxy,
     @Inject(PAYMENT) private paymentClient: ClientProxy,
   ) {
-    this.rabbitmqChannelProvider.createChannel().then((channel) => {
+    const channel = this.rabbitmqChannelProvider.createChannel()
+    .then((channel) => {
       channel.assertQueue('billing1');
       channel.assertQueue('billing2');
       channel.assertQueue('payment1');
@@ -34,7 +35,7 @@ export class OrdersService {
       channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
       channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
     });
-  }
+    }
 
   async findProductByPK(productId) {
     const searchQuery = `SELECT * FROM products WHERE productId = (?)`;
@@ -45,10 +46,7 @@ export class OrdersService {
   }
 
   async onModuleInit(): Promise<void> {
-    //result = [exchange, billing, payment]
-    // const result = this.exchangeFunction.exchangeBalancing();
     this.channel = await this.rabbitmqChannelProvider.createChannel();
-
     await this.channel.assertQueue('billing1');
     await this.channel.assertQueue('payment1');
     await this.channel.assertQueue('billing2');
@@ -57,17 +55,6 @@ export class OrdersService {
     await this.channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
     await this.channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
     await this.channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
-    //publish(exchange: string, routingKey: string, content: Buffer, options?: Options.Publish): boolean;
-    // await this.channel.publish(
-    //   `${result[0]}`,
-    //   `${result[0]}.${result[1]}`,
-    //   (msg) => this.createOrder(msg),
-    // );
-    // await this.channel.publish(
-    //   `${result[0]}`,
-    //   `${result[0]}.${result[2]}`,
-    //   (msg) => this.createOrder(msg),
-    // );
   }
 
   /**
@@ -77,13 +64,15 @@ export class OrdersService {
    */
   async createOrder(request: object) {
     try {
-      //balanceArr = [exchange, billing, payment]
-      const balanceArr = this.exchangeFunction.exchangeBalancing();
+
+      //balanceArr = [exchange1 or 2, billing1 or 2, payment1 or 2]
+      const [exchangeName, billingQueue, paymentQueue] =
+        this.exchangeFunction.exchangeBalancing();
 
       //publish(exchange: string, routingKey: string, content: Buffer, options?: Options.Publish): boolean;
       const result = await this.channel.publish(
-        `${balanceArr[0]}`,
-        `${balanceArr[0]}.${balanceArr[1]}`,
+        exchangeName,
+        `${exchangeName}.${billingQueue}`,
         Buffer.from(JSON.stringify(request)),
       );
       return `${result}: 주문처리 중입니다.`;
@@ -124,17 +113,23 @@ export class OrdersService {
       throw new HttpException('재고가 부족합니다', 403);
 
     /**메세지큐(결제 데이터 전송)*/
-    //balanceArr = [exchange, billing, payment]
-    const balanceArr = this.exchangeFunction.exchangeBalancing();
-        await lastValueFrom(
-          this.paymentClient.emit(`${balanceArr[0]}.${balanceArr[2]}`, {
-            orderData,
-          }),
-        );
-        return '결제처리중 입니다.';
+    //balanceArr = [exchange1 or 2, billing1 or 2, payment1 or 2]
+    const [exchangeName, billingQueue, paymentQueue] =
+      this.exchangeFunction.exchangeBalancing();
+    const result = await this.channel.publish(
+      exchangeName,
+      `${exchangeName}.${paymentQueue}`,
+      Buffer.from(JSON.stringify(orderData)),
+    );
+    return `${result}: 결제처리 중입니다.`;
 
-    }
-  
+    // await lastValueFrom(
+    //   this.paymentClient.emit(`${balanceArr[0]}.${balanceArr[2]}`, {
+    //     orderData,
+    //   }),
+    // );
+    // return '결제처리중 입니다.';
+  }
 
   /**
    * 메인 상품 검색. 일단 가격 싼 순서대로 페이지네이션

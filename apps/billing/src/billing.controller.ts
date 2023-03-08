@@ -1,6 +1,6 @@
 import { Controller, OnModuleInit} from '@nestjs/common';
 import { BillingService } from './billing.service';
-import { MessagePattern, Ctx, Payload, RmqContext } from '@nestjs/microservices';
+import { MessagePattern, Ctx, Payload, RmqContext, EventPattern } from '@nestjs/microservices';
 import { RmqService } from '@app/common/rmq/rmq.service';
 import { RabbitmqChannelProvider } from './connection/rabbitmq-channel.provider';
  
@@ -43,7 +43,7 @@ export class BillingController implements OnModuleInit {
     await this.channel.consume('payment2', (msg) => this.subscribePayment(msg));
   }
 
-  // @MessagePattern('exchange1.billing1')
+  @EventPattern('exchange1.billing1')
   async subscribeBilling(msg: any): Promise<void> {
     const data = JSON.parse(msg.content.toString());
     console.log('Received billing message:', data);
@@ -59,7 +59,7 @@ export class BillingController implements OnModuleInit {
   //   this.rmqService.ack(msg);
   // }
 
-  // @MessagePattern('exchange1.payment1')
+  @EventPattern('exchange1.payment1')
   async subscribePayment(msg: any): Promise<void> {  
     const data = JSON.parse(msg.content.toString());
     console.log('Received payment message:', data);
