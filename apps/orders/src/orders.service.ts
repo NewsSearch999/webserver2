@@ -10,13 +10,15 @@ import { BILLING_SERVICE, PAYMENT_SERVICE } from './constants/service';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom, throwError } from 'rxjs';
 import { orderState } from '@app/common/entity/enum/order.enum';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { CursorFunction } from './util/cursor.fuction';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private readonly connectionService: ConnectionService,
-    @Inject(BILLING_SERVICE) private billingClient: ClientProxy,
-    @Inject(PAYMENT_SERVICE) private paymentClient: ClientProxy,
+    private readonly amqpConnection: AmqpConnection,
+    private readonly cursorFunction: CursorFunction, // @Inject(BILLING_SERVICE) private billingClient: ClientProxy, // @Inject(PAYMENT_SERVICE) private paymentClient: ClientProxy,
   ) {}
 
   async findProductByPK(productId) {
@@ -47,11 +49,13 @@ export class OrdersService {
           request.userId,
         ],
       ]);
-      await lastValueFrom(
-        this.billingClient.emit('order_created', {
-          request,
-        }),
-      );
+      // await lastValueFrom(
+      //   this.billingClient.emit('order_created', {
+      //     request,
+      //   }),
+      // );
+
+      await this.amqpConnection.publish('exchange1', 'BILLING', request);
 
       return order;
     } catch (err) {
@@ -90,11 +94,13 @@ export class OrdersService {
       throw new HttpException('재고가 부족합니다', 403);
 
     /**메세지큐(결제 데이터 전송)*/
-    await lastValueFrom(
-      this.paymentClient.emit('order_payment', {
-        orderData,
-      }),
-    );
+    // await lastValueFrom(
+    //   this.paymentClient.emit('order_payment', {
+    //     orderData,
+    //   }),
+    // );
+
+    await this.amqpConnection.publish('exchange1', 'PAYMENT', orderData);
 
     return '결제처리중 입니다.';
   }
@@ -106,16 +112,28 @@ export class OrdersService {
    */
 
   async getProducts(price: number, productId?: number) {
+    // const cursor = ''.concat(
+    //   this.cursorFunction.lpad(price.toString(), 10, '0'),
+    //   this.cursorFunction.lpad(productId.toString(), 10, '0')
+    // )
+
+    // console.log(cursor);
+    // const seekQuery = `
+    // SELECT productId, productName, image, price, stock
+    // FROM products
+    // WHERE CONCAT(LPAD(price, 10, '0'), LPAD(productId, 10, '0')) > '${cursor}' AND isDeleted = false
+    // ORDER BY price, productId
+    // LIMIT 20`;
+
     const seekQuery = `
-    SELECT productId, productName, image, price, stock  FROM products
-    WHERE price = ? AND productId > ? AND productId != ? AND isDeleted = false  OR price >= ? AND productId != ? AND isDeleted = false 
+    SELECT productId, productName, image, price, stock
+    FROM products
+    WHERE ((price > ? AND isDeleted = false) OR (price = ? AND productId > ? AND isDeleted = false))
     ORDER BY price, productId
     LIMIT 20`;
 
     return this.connectionService.slaveQuery(seekQuery, [
       price,
-      productId,
-      productId,
       price,
       productId,
     ]);
@@ -134,16 +152,15 @@ export class OrdersService {
     const lastPrice = Number(page);
     const seekQuery = `
     SELECT productId, productName, image, price, stock FROM products 
-    WHERE price = ? AND productName = ? AND productId > ? AND isDeleted = false OR price >= ? AND productId != ? AND productName = ? AND isDeleted = false
+    WHERE ((price > ? AND productName = ? AND isDeleted = false) OR (price = ? AND productName = ? AND productId > ? AND isDeleted = false))
     ORDER BY price, productId
     LIMIT 20`;
     return this.connectionService.slaveQuery(seekQuery, [
       lastPrice,
       productName,
-      productId,
       lastPrice,
-      productId,
       productName,
+      productId,
     ]);
   }
 

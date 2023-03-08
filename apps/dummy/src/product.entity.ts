@@ -24,5 +24,10 @@ export class Product {
   })
   stock: number;
 
+  @Column({
+    default: false,
+  })
+  isDeleted: boolean;
+
 
 }

@@ -1,0 +1,62 @@
+config:
+  target: "http://localhost:3000"
+  tls:
+    rejectUnauthorized: false
+  phases:
+    - duration: 10
+      arrivalRate: 100
+  payload:
+    -
+      path: "./userdata.csv"
+      fields:
+        - "email"
+        - "password"
+      loadAll: true
+      order: "sequence"
+    -  
+      path: "./orderdata.csv"
+      fields:
+        - "productid"
+        - "quantity"
+      order: "sequence"
+  processor: "./artilleryfunction.js"    
+
+# before:
+#   flow:
+#     - log: "Running the Authorization before virtual users run"
+#     - post:
+#         url: "/auth/login"
+#         json:
+#           email: "{{email}}"
+#           password: "{{password}}" 
+#         capture:
+#           json: "$.acessToken"
+#           as: "accessToken"
+#         afterResponse: "setToken"   
+
+
+scenarios:
+  - flow:
+      - post:
+          url: "/auth/login"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}" 
+          # capture:
+          #   json: "$.acessToken"
+          #   as: "accessToken"
+          # afterResponse: "setToken"
+
+      - think: 2     
+
+      - post: 
+          # beforeRequest: "getToken"
+          url: "/orders"
+          # headers:
+          #   Authorization: "Bearer {{ accessToken }}"
+          json:
+            productId: "{{ productid }}" 
+            quantity: "{{ quantity }}"
+
+            
+          

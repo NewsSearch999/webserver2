@@ -11,23 +11,28 @@ import { RmqModule } from '@app/common/rmq/rmq.module';
 import { BILLING_SERVICE, PAYMENT_SERVICE } from './constants/service';
 import { DatabaseModule } from '@app/common/database/Database.module';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from 'apps/auth/src/strategies/jwt.strategy';
-import { UsersModule } from 'apps/auth/src/users/users.module';
+import { JwtStrategy } from './auth/strategies/jwt.strategy';
+import { UsersModule } from './auth/users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { RmqService } from '@app/common/rmq/rmq.service';
+import { CursorFunction } from './util/cursor.fuction';
 
 @Module({
   imports: [
+    RmqModule,
+    AuthModule,
     DatabaseModule,
     UsersModule,
     TypeOrmModule.forFeature([Product, Order]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    RmqModule.register({
-      name: BILLING_SERVICE,
-    }),
-    RmqModule.register({
-      name: PAYMENT_SERVICE,
-    }),
+    // RmqModule.register({
+    //   name: BILLING_SERVICE,
+    // }),
+    // RmqModule.register({
+    //   name: PAYMENT_SERVICE,
+    // }),
   ],
   controllers: [OrdersController],
-  providers: [OrdersService, ConnectionService, JwtStrategy],
+  providers: [OrdersService, ConnectionService, JwtStrategy, CursorFunction],
 })
 export class OrdersModule {}

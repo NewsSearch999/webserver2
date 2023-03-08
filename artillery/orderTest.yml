@@ -1,0 +1,25 @@
+config:
+  target: "http://localhost:3000"
+  tls:
+    rejectUnauthorized: false
+  phases:
+    - duration: 10
+      arrivalRate: 100
+  payload:  
+    path: "./orderdata.csv"
+    fields:
+      - "productid"
+      - "quantity"
+    order: "sequence"  
+
+scenarios:
+  - name: "order"
+    flow:
+      - post: 
+          url: "/orders"
+          json:
+            productId: "{{ productid }}" 
+            quantity: "{{ quantity }}"
+
+            
+          

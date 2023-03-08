@@ -1,13 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { ConnectionService } from './connection/connection.service';
-import { createRandomProduct } from './util/faker';
+import { createRandomProduct, createRandomUser } from './util/faker';
 
 @Injectable()
 export class DummyService {
   constructor(private connectionService: ConnectionService) {}
 
+  async createThousandUsers(){
+    const createQuery = `INSERT INTO users (email, password, accountType, deletedType) values (?)`;
+    for (let i = 0; i <= 1000; i++) {
+      let user = createRandomUser()
+      await this.connectionService.Query(createQuery, [
+        [
+          user.email,
+          user.password,
+          user.accountType,
+          user.deletedType,
+        ],
+      ]);
+    }
+  }
+
   async createHundredThousands() {
-    const createQuery = `INSERT INTO products (productName, description, image, price, stock) values (?)`;
+    const createQuery = `INSERT INTO products (productName, description, image, price, stock, userId, isDeleted) values (?)`;
 
     for (let i = 0; i <= 100000; i++) {
       let product = createRandomProduct();
@@ -19,6 +34,8 @@ export class DummyService {
           product.image,
           product.price,
           product.stock,
+          product.userId,
+          false
         ],
       ]);
     }

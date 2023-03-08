@@ -9,7 +9,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { OrderDto } from './dto/order.dto';
-import { SearchDto } from './dto/search.dto';
 import { deliveryState } from '@app/common/entity/enum/delivery.enum';
 import { orderState } from '@app/common/entity/enum/order.enum';
 import { OrdersService } from './orders.service';
@@ -17,10 +16,14 @@ import { IdPipe } from './pipes/id.pipe';
 import { NumberPipe } from './pipes/number.pipe';
 import { StringPipe } from './pipes/string.pipe';
 import { AuthGuard } from '@nestjs/passport';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 
 @Controller()
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(
+    private readonly ordersService: OrdersService,
+    private readonly amqpConnection : AmqpConnection
+    ) {}
 
   /**
    * 주문생성
@@ -31,6 +34,7 @@ export class OrdersController {
   @Post('orders')
   async createOrder(@Body() orderDto: OrderDto, @Req() req) {
     const { userId } = req.user; //주문자 ID
+    // let userId = Math.floor(Math.random() * 1000)
     const request = {
       productId: orderDto.productId,
       quantity: orderDto.quantity,
@@ -38,6 +42,7 @@ export class OrdersController {
       deliveryState: deliveryState.결제대기,
       userId: userId,
     };
+    console.log(request)
     return this.ordersService.createOrder(request);
   }
 
@@ -121,8 +126,26 @@ export class OrdersController {
     }
   }
 
+  /**
+   * 
+   * ALB 헬스체크 경로
+   */
   @Get('/')
   healthCheck(){
     console.log('orders app healthcheck')
+  }
+
+    /**
+   * 
+   * RMQ의 클라이언트와의 통신 테스트 경로
+   */
+  @Get('rpc')
+  async getRpc() {
+    const response = await this.amqpConnection.request({
+      exchange: 'exchange1',
+      routingKey: 'rpc',
+    });
+
+    return response;
   }
 }
