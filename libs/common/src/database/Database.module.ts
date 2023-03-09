@@ -10,6 +10,7 @@ const entityPath = path.join(__dirname, 'libs/entity/**/*.entity.ts');
 @Module({
   imports: [
     ConfigModule.forRoot({
+      expandVariables: true,
       isGlobal: true,
       envFilePath: './libs/.libs.env',
     }),
