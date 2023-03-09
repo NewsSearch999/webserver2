@@ -16,7 +16,6 @@ export class ConnectionService {
       user: configService.get<string>('DB_USER'),
       database: configService.get<string>('DB_NAME'),
       password: configService.get<string>('DB_PASSWORD'),
-  
     });
 
     this.slave1Connection = connection.createPool({
@@ -36,7 +35,6 @@ export class ConnectionService {
       connectionLimit: 500,
     });
   }
-  
 
   async masterQuery(
     rawQuery: string,
