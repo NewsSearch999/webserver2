@@ -7,7 +7,9 @@ import { SQLStatement } from 'sql-template-strings';
 @Injectable()
 export class ConnectionService {
   public masterConnection: connection.Pool;
-  public slaveConnection: connection.Pool;
+  public slave1Connection: connection.Pool;
+  public slave2Connection: connection.Pool;
+  private x = 0;
   constructor(configService: ConfigService) {
     this.masterConnection = connection.createPool({
       host: configService.get<string>('MASTER_DB_HOST'),
@@ -18,8 +20,17 @@ export class ConnectionService {
       connectionLimit: 500,
     });
 
-    this.slaveConnection = connection.createPool({
+    this.slave1Connection = connection.createPool({
       host: configService.get<string>('SLAVE1_DB_HOST'),
+      port: configService.get<number>('DB_PORT'),
+      user: configService.get<string>('DB_USER'),
+      database: configService.get<string>('DB_NAME'),
+      password: configService.get<string>('DB_PASSWORD'),
+      connectionLimit: 500,
+    });
+
+    this.slave2Connection = connection.createPool({
+      host: configService.get<string>('SLAVE2_DB_HOST'),
       port: configService.get<number>('DB_PORT'),
       user: configService.get<string>('DB_USER'),
       database: configService.get<string>('DB_NAME'),
@@ -75,10 +86,21 @@ export class ConnectionService {
     | OkPacket[]
     | ResultSetHeader
   > {
-    const conn = await this.slaveConnection.getConnection();
-    const [results, fields] = await conn.query(rawQuery, params);
-    conn.release();
-    return results;
+    switch (this.x) {
+      case 0:
+        this.x = 1;
+        const conn1 = await this.slave1Connection.getConnection();
+        const [results1, fields1] = await conn1.query(rawQuery, params);
+        conn1.release();
+        return results1;
+
+      case 1:
+        this.x = 0;
+        const conn2 = await this.slave2Connection.getConnection();
+        const [results2, fields2] = await conn2.query(rawQuery, params);
+        conn2.release();
+        return results2;
+    }
   }
 
   async slaveSQL(
@@ -91,14 +113,26 @@ export class ConnectionService {
     | ResultSetHeader
   > {
     let data = [];
+    switch (this.x) {
+      case 0:
+        this.x = 1;
+        if (typeof args[0] === 'string' && args[1] instanceof Array)
+          data = await this.slave1Connection.query(args[0], args[1]);
+        else if (args[0] instanceof SQLStatement && args[1] instanceof Array)
+          data = await this.slave1Connection.query(args[0], args[1]);
+        else if (args[0] instanceof SQLStatement && args[1] === undefined)
+          data = await this.slave1Connection.query(args[0]);
+        return data[0];
 
-    if (typeof args[0] === 'string' && args[1] instanceof Array)
-      data = await this.slaveConnection.query(args[0], args[1]);
-    else if (args[0] instanceof SQLStatement && args[1] instanceof Array)
-      data = await this.slaveConnection.query(args[0], args[1]);
-    else if (args[0] instanceof SQLStatement && args[1] === undefined)
-      data = await this.slaveConnection.query(args[0]);
-
-    return data[0];
+      case 1:
+        this.x = 0;
+        if (typeof args[0] === 'string' && args[1] instanceof Array)
+          data = await this.slave1Connection.query(args[0], args[1]);
+        else if (args[0] instanceof SQLStatement && args[1] instanceof Array)
+          data = await this.slave1Connection.query(args[0], args[1]);
+        else if (args[0] instanceof SQLStatement && args[1] === undefined)
+          data = await this.slave1Connection.query(args[0]);
+        return data[0];
+    }
   }
 }
