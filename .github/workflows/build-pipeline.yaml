@@ -1,0 +1,48 @@
+name: build-pipeline
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build-image:
+    name: Build Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Create .env
+        run: |
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> ./libs/.libs.env
+          echo "DB_USER=${{ secrets.DB_HOST }}" >> ./libs/.libs.env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> ./libs/.libs.env
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> ./libs/.libs.env
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> ./libs/.libs.env
+          echo "MASTER_DB_HOST=${{ secrets.MASTER_DB_HOST }}" >> ./libs/.libs.env
+          echo "SLAVE1_DB_HOST=${{ secrets.SLAVE1_DB_HOST }}" >> ./libs/.libs.env
+          echo "SLAVE2_DB_HOST=${{ secrets.SLAVE2_DB_HOST }}" >> ./libs/.libs.env
+          echo "JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}" >> ./libs/.libs.env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ./libs/.libs.env
+          echo "RABBIT_MQ_URI=${{ secrets.RABBIT_MQ_URI }}" >> ./libs/.libs.env
+          echo "RABBIT_MQ_exchange1_billing_QUEUE=${{ secrets.RABBIT_MQ_exchange1_billing_QUEUE }}" >> ./libs/.libs.env
+          echo "RABBIT_MQ_exchange1_payment_QUEUE=${{ secrets.RABBIT_MQ_exchange1_payment_QUEUE }}" >> ./libs/.libs.env
+          echo "RABBIT_MQ_exchange2_billing_QUEUE=${{ secrets.RABBIT_MQ_exchange2_billing_QUEUE }}" >> ./libs/.libs.env
+          echo "RABBIT_MQ_exchange2_payment_QUEUE=${{ secrets.RABBIT_MQ_exchange2_payment_QUEUE }}" >> ./libs/.libs.env
+          echo "ECR_REGISTRY=${{ secrets.ECR_REGISTRY }}" >> ./libs/.libs.env
+          echo "ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY }}" >> ./libs/.libs.env
+          cat ./libs/.libs.env
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        run: |
+          docker-compose -f docker-compose.aws.yml --env-file ./libs/.libs.env build
+          docker-compose -f docker-compose.aws.yml --env-file ./libs/.libs.env push
+

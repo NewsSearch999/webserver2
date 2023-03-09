@@ -1,73 +1,88 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+## **_🛒대용량 트래픽 주문 프로젝트 SuperOrder_**
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+>“**실제 서비스에서 무수히 쏟아지는 주문을 어떻게 처리할 수 있을까?”**<br/>
+>대용량 트래픽 처리를 위한 프로젝트 입니다.<br/><br/>
+>**[📎 노션](https://www.notion.so/OrderSearch-11ef1dbc148444b8b55efaa4d9f1775b)**<br/><br/>
+>**[📎 Frontend링크](https://github.com/NewsSearch999/Frontend)**<br/><br/>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+<br/>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-## Installation
+<br/>
 
-```bash
-$ npm install
-```
 
-## Running the app
+<br/>
 
-```bash
-# development
-$ npm run start
+## 🛠️ **_프로젝트 아키텍처_**
+![아키텍처](https://user-images.githubusercontent.com/98438390/223382237-64941454-ce5f-465e-8e2a-591aaa991af1.png)
 
-# watch mode
-$ npm run start:dev
 
-# production mode
-$ npm run start:prod
-```
 
-## Test
+<br/>
 
-```bash
-# unit tests
-$ npm run test
+## 💻 **_화면 구성_**
+| 회원가입&로그인 | 주문생성 |
+|:---: | :---: |
+|![login-1](https://user-images.githubusercontent.com/98438390/223464234-5ff357e7-6b4d-43a1-b064-230ceb701870.gif)|![order](https://user-images.githubusercontent.com/98438390/223413479-f71d6570-f306-4542-ab12-683818fa3673.gif)|
+<br/><br/>
 
-# e2e tests
-$ npm run test:e2e
+ |상품검색&무한스크롤 |
+ | :---: |
+ |![search-6](https://user-images.githubusercontent.com/98438390/223464310-f990f272-ac1c-4db2-bf37-76fd3da41771.gif)|
+ <br/><br/>
 
-# test coverage
-$ npm run test:cov
-```
 
-## Support
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## ⚙️ **_기술 스택_**
 
-## Stay in touch
+**Backend**<br /><br />
+<img src="https://img.shields.io/badge/Nest.js-E0234E?style=for-the-badge&logo=NestJS&logoColor=white">
+<img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=TypeScript&logoColor=black">
+<img src="https://img.shields.io/badge/Amazon RDS-527FFF?style=for-the-badge&logo=Amazon RDS&logoColor=white">
+<img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=MySQL&logoColor=white">
+<br/>
+<img src="https://img.shields.io/badge/Amazon ECS-FF9900?style=for-the-badge&logo=Amazon ECS&logoColor=white">
+<img src="https://img.shields.io/badge/AWS Fargate-FF9900?style=for-the-badge&logo=AWS Fargate&logoColor=white">
+<img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=Docker&logoColor=white">
+<img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=GitHub&logoColor=white">
+<img src="https://img.shields.io/badge/GitHub Actions-2088FF?style=for-the-badge&logo=GitHub Actions&logoColor=white">
+<br/><br />
+**Frontend**<br /><br />
+<img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=React&logoColor=white">
+<img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=TypeScript&logoColor=black">
+<img src="https://img.shields.io/badge/styled-components-DB7093?style=for-the-badge&logo=styled-components&logoColor=white">
+<img src="https://img.shields.io/badge/JSON Web Tokens-000000?style=for-the-badge&logo=JSON Web Tokens&logoColor=white">
+<img src="https://img.shields.io/badge/Axios-5A29E40?style=for-the-badge&logo=Axios&logoColor=white">
+<img src="https://img.shields.io/badge/Netlify-00C7B7?style=for-the-badge&logo=Netlify&logoColor=white">
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
 
-## License
 
-Nest is [MIT licensed](LICENSE).
+
+
+<br/>
+
+## ⚠️ **_트러블 슈팅_**
+**<details><summary>제목</summary>**
+
+❗**문제**: 문제<br/>
+<br/>
+❓**원인**:원인<br/>
+<br/>
+💡**문제 해결**: 해결
+<br/>
+</details>
+
+**<details><summary>제목</summary>**
+
+❗**문제**: 문제<br/>
+<br/>
+❓**원인**: 원인<br/>
+<br/>
+💡**문제 해결**: <br/>
+<br/>
+
+</details>
+
+
+
