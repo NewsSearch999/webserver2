@@ -61,7 +61,7 @@ export class BillingService {
   }
 
   /**결제 트랜잭션 */
-  async payment({ orderData }) {
+  async payment( orderData ) {
     const connection =
       await this.connectionService.masterConnection.getConnection();
     try {
@@ -80,7 +80,7 @@ export class BillingService {
         WHERE orderId = ?
         `;
 
-        console.log(orderData.stock)
+  
       /**남은 수량 */
       const leftQuantity = orderData.stock - orderData.quantity;
 

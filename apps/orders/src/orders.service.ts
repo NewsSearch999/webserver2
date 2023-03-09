@@ -8,10 +8,6 @@ import {
 import { ConnectionService } from './connection/connection.service';
 import { orderState } from '@app/common/entity/enum/order.enum';
 import { ExchangeFunction } from './util/exchange.function';
-// import { ClientProxy } from '@nestjs/microservices';
-// import { from, lastValueFrom } from 'rxjs';
-// import { BILLING } from './constants/service';
-// import { PAYMENT } from './constants/service';
 import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
 
 @Injectable()
@@ -20,8 +16,8 @@ export class OrdersService {
   constructor(
     private readonly connectionService: ConnectionService,
     private readonly exchangeFunction: ExchangeFunction,
-    private readonly rabbitmqChannelProvider: RabbitmqChannelProvider, // @Inject(BILLING) private billingClient: ClientProxy,
-  ) // @Inject(PAYMENT) private paymentClient: ClientProxy,
+    private readonly rabbitmqChannelProvider: RabbitmqChannelProvider,
+  ) 
   {}
 
   async findProductByPK(productId) {
@@ -43,17 +39,17 @@ export class OrdersService {
       const [exchangeName, billingQueue, paymentQueue] =
         this.exchangeFunction.exchangeBalancing();
 
-      const channel = await this.rabbitmqChannelProvider.createChannel();
+      this.channel = await this.rabbitmqChannelProvider.createChannel();
 
       //publish(exchange: string, routingKey: string, content: Buffer, options?: Options.Publish): boolean;
-      channel.publish(
+      this.channel.publish(
         exchangeName,
         `${exchangeName}.${billingQueue}`,
         Buffer.from(JSON.stringify(request)),
       );
       // channel.sendToQueue(billingQueue, Buffer.from(JSON.stringify(request)))
 
-      await channel.close();
+      // await channel.close();
 
       return `${request}: 주문처리 중입니다.`;
     } catch (err) {
@@ -76,42 +72,41 @@ export class OrdersService {
     WHERE orderId = ?
     `;
 
-    /**주문 정보 조회 */
-    const row = await this.connectionService.slaveQuery(seekQuery, [orderId]);
-    const orderData = row[0];
+    try {
 
-    /**주문자 확인 */
-    if (orderData.userId !== userId)
-      throw new HttpException('주문자가 일치하지 않습니다', 403);
+      /**주문 정보 조회 */
+      const row = await this.connectionService.slaveQuery(seekQuery, [orderId]);
+      const orderData = row[0];
 
-    /**결제 유무 확인 */
-    if (orderData.orderState == orderState.결제완료)
-      throw new HttpException('이미 결제가 완료 되었습니다', 403);
+      /**주문자 확인 */
+      if (orderData.userId !== userId)
+        throw new HttpException('주문자가 일치하지 않습니다', 403);
 
-    /**상품 수량 체크*/
-    if (orderData.stock < orderData.quantity)
-      throw new HttpException('재고가 부족합니다', 403);
+      /**결제 유무 확인 */
+      if (orderData.orderState == orderState.결제완료)
+        throw new HttpException('이미 결제가 완료 되었습니다', 403);
 
-    /**메세지큐(결제 데이터 전송)*/
-    //balanceArr = [exchange1 or 2, billing1 or 2, payment1 or 2]
-    const [exchangeName, billingQueue, paymentQueue] =
-      this.exchangeFunction.exchangeBalancing();
+      /**상품 수량 체크*/
+      if (orderData.stock < orderData.quantity)
+        throw new HttpException('재고가 부족합니다', 403);
 
-    const channel = await this.rabbitmqChannelProvider.createChannel();
+      /**메세지큐(결제 데이터 전송)*/
+      //balanceArr = [exchange1 or 2, billing1 or 2, payment1 or 2]
+      const [exchangeName, billingQueue, paymentQueue] =
+        this.exchangeFunction.exchangeBalancing();
 
-    channel.publish(
-      exchangeName,
-      `${exchangeName}.${paymentQueue}`,
-      Buffer.from(JSON.stringify(orderData)),
-    );
-    return `${orderData}: 결제처리 중입니다.`;
+      this.channel = await this.rabbitmqChannelProvider.createChannel();
 
-    // await lastValueFrom(
-    //   this.paymentClient.emit(`${balanceArr[0]}.${balanceArr[2]}`, {
-    //     orderData,
-    //   }),
-    // );
-    // return '결제처리중 입니다.';
+      this.channel.publish(
+        exchangeName,
+        `${exchangeName}.${paymentQueue}`,
+        Buffer.from(JSON.stringify(orderData)),
+      );
+      return `${orderData}: 결제처리 중입니다.`;
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
   }
 
   /**

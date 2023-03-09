@@ -49,13 +49,14 @@ export class OrdersController {
    * @param req
    * @returns
    */
-  @UseGuards(AuthGuard())
-  @Put('orders/:orderid')
+  // @UseGuards(AuthGuard())
+  @Put('orders/:orderid') 
   async paymentOrder(
     @Param('orderid', NumberPipe) orderId: number,
     @Req() req,
   ) {
-    const { userId } = req.user;
+    // const { userId } = req.user;
+    let userId = 1002
     return this.ordersService.paymentOrder(orderId, userId);
   }
 

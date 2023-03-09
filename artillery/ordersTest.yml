@@ -3,8 +3,8 @@ config:
   tls:
     rejectUnauthorized: false
   phases:
-    - duration: 1
-      arrivalRate: 1000
+    - duration: 10
+      arrivalRate: 100
   payload:  
     path: "./orderdata.csv"
     fields:

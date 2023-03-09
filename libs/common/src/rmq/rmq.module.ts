@@ -1,12 +1,12 @@
-import { DynamicModule, Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { RmqService } from './rmq.service';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
-interface RmqModuleOptions {
-  name: string;
-  exchange: string
-}
+// import { DynamicModule, Module } from '@nestjs/common';
+// import { ConfigService } from '@nestjs/config';
+// import { RmqService } from './rmq.service';
+// import { ClientsModule, Transport } from '@nestjs/microservices';
+// import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
+// interface RmqModuleOptions {
+//   name: string;
+//   exchange: string
+// }
 
 // export class RmqModule {
 //   static register({ name }: RmqModuleOptions): DynamicModule {
@@ -48,34 +48,34 @@ interface RmqModuleOptions {
 //   }
 // }
 
-@Module({
-  providers: [RmqService],
-  exports: [RmqService],
-})
-export class RmqModule {
-  static register({ name, exchange }: RmqModuleOptions): DynamicModule {
-    return {
-      module: RmqModule,
-      imports: [
-        ClientsModule.registerAsync([
-          {
-            name,
-            useFactory: (configService: ConfigService) => ({
-              transport: Transport.RMQ,
-              options: {
-                urls: [configService.get<string>(`RABBIT_MQ_URI`)],
-                queue: configService.get<string>(`RABBIT_MQ_${exchange}_${name}_QUEUE`),
-                noAck: false,
-                prefetchCount: 1, // 소비자가 RabbitMQ로부터 수신할 수 있는 메시지 수. 위의 channel prefetchCount와 다르다.
-                exchange : exchange,
-                persistent: true
-              },
-            }),
-            inject: [ConfigService],
-          },
-        ]),
-      ],
-      exports: [ClientsModule],
-    };
-  }
-}
+// @Module({
+//   providers: [RmqService],
+//   exports: [RmqService],
+// })
+// export class RmqModule {
+//   static register({ name, exchange }: RmqModuleOptions): DynamicModule {
+//     return {
+//       module: RmqModule,
+//       imports: [
+//         ClientsModule.registerAsync([
+//           {
+//             name,
+//             useFactory: (configService: ConfigService) => ({
+//               transport: Transport.RMQ,
+//               options: {
+//                 urls: [configService.get<string>(`RABBIT_MQ_URI`)],
+//                 queue: configService.get<string>(`RABBIT_MQ_${exchange}_${name}_QUEUE`),
+//                 noAck: false,
+//                 prefetchCount: 1, // 소비자가 RabbitMQ로부터 수신할 수 있는 메시지 수. 위의 channel prefetchCount와 다르다.
+//                 exchange : exchange,
+//                 persistent: true
+//               },
+//             }),
+//             inject: [ConfigService],
+//           },
+//         ]),
+//       ],
+//       exports: [ClientsModule],
+//     };
+//   }
+// }
