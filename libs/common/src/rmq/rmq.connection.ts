@@ -12,7 +12,7 @@ export class RabbitmqChannelProvider {
       const rabbitmqUrl = this.configService.get<string>('RABBIT_MQ_URI');
       const connection = await connect(rabbitmqUrl);
       const channel = await connection.createChannel();
-      await channel.prefetch(50, true);
+      await channel.prefetch(10, true);
 
       // Declare exchanges
       for (const exchange of rabbitmqConfig.exchanges) {
