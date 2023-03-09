@@ -1,8 +1,7 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import mysql, { OkPacket, ResultSetHeader, RowDataPacket } from 'mysql2';
+import { OkPacket, ResultSetHeader, RowDataPacket } from 'mysql2';
 import * as connection from 'mysql2/promise';
-import { SQLStatement } from 'sql-template-strings';
 
 @Injectable()
 export class ConnectionService {
@@ -17,7 +16,7 @@ export class ConnectionService {
       user: configService.get<string>('DB_USER'),
       database: configService.get<string>('DB_NAME'),
       password: configService.get<string>('DB_PASSWORD'),
-      connectionLimit: 500,
+  
     });
 
     this.slave1Connection = connection.createPool({
@@ -26,7 +25,6 @@ export class ConnectionService {
       user: configService.get<string>('DB_USER'),
       database: configService.get<string>('DB_NAME'),
       password: configService.get<string>('DB_PASSWORD'),
-      connectionLimit: 500,
     });
 
     this.slave2Connection = connection.createPool({
@@ -38,6 +36,7 @@ export class ConnectionService {
       connectionLimit: 500,
     });
   }
+  
 
   async masterQuery(
     rawQuery: string,
@@ -53,27 +52,6 @@ export class ConnectionService {
     const [results, fields] = await conn.query(rawQuery, params);
     conn.release();
     return results;
-  }
-
-  async masterSQL(
-    ...args: any
-  ): Promise<
-    | RowDataPacket[][]
-    | RowDataPacket[]
-    | OkPacket
-    | OkPacket[]
-    | ResultSetHeader
-  > {
-    let data = [];
-
-    if (typeof args[0] === 'string' && args[1] instanceof Array)
-      data = await this.masterConnection.query(args[0], args[1]);
-    else if (args[0] instanceof SQLStatement && args[1] instanceof Array)
-      data = await this.masterConnection.query(args[0], args[1]);
-    else if (args[0] instanceof SQLStatement && args[1] === undefined)
-      data = await this.masterConnection.query(args[0]);
-
-    return data[0];
   }
 
   async slaveQuery(
@@ -100,39 +78,6 @@ export class ConnectionService {
         const [results2, fields2] = await conn2.query(rawQuery, params);
         conn2.release();
         return results2;
-    }
-  }
-
-  async slaveSQL(
-    ...args: any
-  ): Promise<
-    | RowDataPacket[][]
-    | RowDataPacket[]
-    | OkPacket
-    | OkPacket[]
-    | ResultSetHeader
-  > {
-    let data = [];
-    switch (this.x) {
-      case 0:
-        this.x = 1;
-        if (typeof args[0] === 'string' && args[1] instanceof Array)
-          data = await this.slave1Connection.query(args[0], args[1]);
-        else if (args[0] instanceof SQLStatement && args[1] instanceof Array)
-          data = await this.slave1Connection.query(args[0], args[1]);
-        else if (args[0] instanceof SQLStatement && args[1] === undefined)
-          data = await this.slave1Connection.query(args[0]);
-        return data[0];
-
-      case 1:
-        this.x = 0;
-        if (typeof args[0] === 'string' && args[1] instanceof Array)
-          data = await this.slave1Connection.query(args[0], args[1]);
-        else if (args[0] instanceof SQLStatement && args[1] instanceof Array)
-          data = await this.slave1Connection.query(args[0], args[1]);
-        else if (args[0] instanceof SQLStatement && args[1] === undefined)
-          data = await this.slave1Connection.query(args[0]);
-        return data[0];
     }
   }
 }

@@ -1,0 +1,22 @@
+config:
+  target: "http://localhost:3000"
+  tls:
+    rejectUnauthorized: false
+  phases:
+    - duration: 10
+      arrivalRate: 300
+  payload:   
+    path: "./payment.csv"
+    fields:
+      - "orderId"
+    order: "sequence"  
+
+scenarios:
+  - name: "payment"
+    flow:
+      - put: 
+          url: "/orders/{{ orderId }}"
+    
+
+            
+          

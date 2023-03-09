@@ -8,23 +8,26 @@ import { SQLStatement } from 'sql-template-strings';
 export class ConnectionService {
   public masterConnection: connection.Pool;
   public slaveConnection: connection.Pool;
-  constructor(configService: ConfigService) {
+  constructor(
+  private configService:ConfigService
+    ) {
+    
     this.masterConnection = connection.createPool({
-      host: configService.get<string>('MASTER_DB_HOST'),
-      port: configService.get<number>('DB_PORT'),
-      user: configService.get<string>('DB_USER'),
-      database: configService.get<string>('DB_NAME'),
-      password: configService.get<string>('DB_PASSWORD'),
-      connectionLimit: 500,
+      host: this.configService.get<string>('MASTER_DB_HOST'),
+      port: this.configService.get<number>('DB_PORT'),
+      user: this.configService.get<string>('DB_USER'),
+      database: this.configService.get<string>('DB_NAME'),
+      password: this.configService.get<string>('DB_PASSWORD'),
+
     });
 
     this.slaveConnection = connection.createPool({
-      host: configService.get<string>('SLAVE1_DB_HOST'),
-      port: configService.get<number>('DB_PORT'),
-      user: configService.get<string>('DB_USER'),
-      database: configService.get<string>('DB_NAME'),
-      password: configService.get<string>('DB_PASSWORD'),
-      connectionLimit: 500,
+      host: this.configService.get<string>('SLAVE1_DB_HOST'),
+      port: this.configService.get<number>('DB_PORT'),
+      user: this.configService.get<string>('DB_USER'),
+      database: this.configService.get<string>('DB_NAME'),
+      password: this.configService.get<string>('DB_PASSWORD'),
+   
     });
   }
 

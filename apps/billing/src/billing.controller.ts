@@ -1,205 +1,206 @@
 import { Controller, OnModuleInit } from '@nestjs/common';
 import { BillingService } from './billing.service';
-import {
-  MessagePattern,
-  Ctx,
-  Payload,
-  RmqContext,
-  EventPattern,
-} from '@nestjs/microservices';
 import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
-import { Channel, connect } from 'amqplib/callback_api';
-import { ConfigService } from '@nestjs/config';
+// import { Channel, connect } from 'amqplib/callback_api';
+// import { Channel, connect } from 'amqplib';
+import { Channel, ConsumeMessage, MessageProperties } from 'amqplib';
 
 @Controller()
 export class BillingController implements OnModuleInit {
+  private channel: Channel;
   constructor(
     private readonly billingService: BillingService,
     private readonly rabbitmqChannelProvider: RabbitmqChannelProvider,
-    private configService: ConfigService,
-  ) {
-    // this.rabbitmqChannelProvider.createChannel().then((channel) => {
-    //   channel.assertQueue('billing1');
-    //   channel.assertQueue('billing2');
-    //   channel.assertQueue('payment1');
-    //   channel.assertQueue('payment2');
-    //   channel.bindQueue('billing1', 'exchange1', 'exchange1.billing1');
-    //   channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
-    //   channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
-    //   channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
-    // });
-  }
-
-  // async onModuleInit(): Promise<void> {
-  //   const channel = await this.rabbitmqChannelProvider.createChannel();
-  // // await channel.assertQueue('billing1');
-  // // await channel.assertQueue('payment1');
-  // // await channel.assertQueue('billing2');
-  // // await channel.assertQueue('payment2');
-  // // await channel.bindQueue('billing1', 'exchange1', 'exchange1.billing1');
-  // // await channel.bindQueue('billing2', 'exchange2', 'exchange2.billing2');
-  // // await channel.bindQueue('payment1', 'exchange1', 'exchange1.payment1');
-  // // await channel.bindQueue('payment2', 'exchange2', 'exchange2.payment2');
-
-  // await channel.consume('billing1', (msg) => {
-  //   this.billingService.createOrder(JSON.parse(msg.content.toString()));
-  //   channel.ack(msg)
-  //   console.log('Received billing message:', JSON.parse(msg.content.toString()));
-  // }, { noAck : false});
-  // await channel.close();
-
-  // await channel.consume('payment1', (msg) => {
-  //   this.billingService.payment(JSON.parse(msg.content.toString()));
-  //   channel.ack(msg)
-  //   console.log('Received payment message:', JSON.parse(msg.content.toString()));
-  // }, { noAck : false});
-  // await channel.close();
-
-  // await channel.consume('billing2', (msg) => {
-  //   this.billingService.createOrder(JSON.parse(msg.content.toString()));
-  //   channel.ack(msg)
-  //   console.log('Received billing message:', JSON.parse(msg.content.toString()));
-  // }, { noAck : false});
-  // await channel.close();
-
-  // await channel.consume('payment2', (msg) => {
-  //   this.billingService.payment(JSON.parse(msg.content.toString()));
-  //   channel.ack(msg)
-  //   console.log('Received payment message:', JSON.parse(msg.content.toString()));
-  // }, { noAck : false});
-  // await channel.close();
-  // }
+  ) {}
 
   async onModuleInit(): Promise<void> {
-    try {
-      const rabbitmqUrl = this.configService.get<string>('RABBIT_MQ_URI');
-      connect(rabbitmqUrl, (error0, connection) => {
-        if (error0) {
-          console.log(`error0 : ${error0}`)
-          throw error0;
-        }
-        connection.createChannel((error1, channel) => {
-          if (error1) {
-            console.log(`error1 : ${error1}`)
-            throw error1;
+    //const channel = await this.rabbitmqChannelProvider.createChannel();
+    this.channel = await this.rabbitmqChannelProvider.createChannel();
+
+    await this.channel.consume(
+      'billing1',
+      async (msg) => {
+        try {
+          if(!msg.content.toString()){
+            throw new Error('빈 메시지를 보냈는데?')
           }
-          channel.assertExchange('exchange1', 'direct', { durable: true });
-          channel.assertQueue('billing1');
-          channel.bindQueue('billing1', 'exchange1', 'exchage1.billing1');
+          if(!msg.fields){
+            throw new Error('fields가 없는데?')
+          }
 
-          channel.consume(
-            'billing1',
-            (msg) => {
-              this.billingService.createOrder(
-                JSON.parse(msg.content.toString()),
-              );
-              channel.ack(msg);
-              console.log(
-                'Received billing message:',
-                JSON.parse(msg.content.toString()),
-              );
-
-             
-            },
-            { noAck: false },
+          this.billingService.createOrder(JSON.parse(msg.content.toString()));
+          this.channel.ack(msg, true);
+          // this.channel.ackAll()
+          console.log(
+            'Received billing1 message:',
+            JSON.parse(msg.content.toString()),
           );
-        });
-        connection.on('close', (error2) => {
-          console.log(`error2 : ${error2}`)
-          throw error2;
-        });
-      });
-    } catch (e) {
-      console.log(e);
-      throw new Error(e.response);
-    }
-  }
+        } catch (error) {
+          if(!msg.fields) throw new Error (`fields가 없는데? : ${msg}`)
+          if(msg.properties.headers['x-redelivered-count']){
+            const retryCount = msg.properties.headers['x-redelivered-count'];
+          
+              if (retryCount >= 3) {
+              // 재시도 횟수가 3회 이상이면 메시지를 버림
+              this.channel.reject(msg, false);
+              console.error(`retryCount: ${retryCount}, ${msg}를 버립니다.`);
+              } else {
 
-  // @MessagePattern('exchange1.billing1')
-  async subscribeBilling1(message: any): Promise<void> {
-    const channel = await this.rabbitmqChannelProvider.createChannel();
-    try {
-      const data = JSON.parse(message.content.toString());
-      await channel.consume(
-        'billing1',
-        (message) => {
-          this.billingService.createOrder(
-            JSON.parse(message.content.toString()),
+               // 재시도 횟수가 3회 미만이면 메시지를 재시도
+               const delay = 1000 * Math.pow(2, retryCount);
+               await new Promise((resolve) => setTimeout(resolve, delay));
+               this.channel.nack(msg, false, true);
+               console.log(`Retrying in ${delay} ms. Retry count: ${retryCount}`);
+              }
+
+            }else{
+              // 메시지를 처음 받았을 때
+              msg.properties.headers['x-redelivered-count'] = 1;
+              this.channel.nack(msg, false, true);
+            }
+        }
+      },
+      { noAck: false  },
+    );
+    // await channel.close();
+
+    await this.channel.consume(
+      'payment1',
+      async (msg) => {
+        try {
+          if(!msg.content.toString()){
+            throw new Error('빈 메시지를 보냈는데?')
+          }
+          if(!msg.fields){
+            throw new Error('fields가 없는데?')
+          }
+
+          this.billingService.payment(JSON.parse(msg.content.toString()));
+          this.channel.ack(msg, true);
+          console.log(
+            'Received payment1 message:',
+            JSON.parse(msg.content.toString()),
           );
-          channel.ack(message);
-        },
-        { noAck: false },
-      );
-      console.log('Received billing message:', data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      await channel.close();
-    }
-  }
+        } catch (error) {
+          if(!msg.fields) throw new Error (`fields가 없는데? : ${msg}`)
+          if(msg.properties.headers['x-redelivered-count']){
+            const retryCount = msg.properties.headers['x-redelivered-count'];
+          
+              if (retryCount >= 3) {
+              // 재시도 횟수가 3회 이상이면 메시지를 버림
+              this.channel.reject(msg, false);
+              console.error(`retryCount: ${retryCount}, ${msg}를 버립니다.`);
+              } else {
 
-  @MessagePattern('exchange2.billing2')
-  async subscribeBilling2(message: any): Promise<void> {
-    const channel = await this.rabbitmqChannelProvider.createChannel();
-    try {
-      const data = JSON.parse(message.content.toString());
-      await channel.consume(
-        'billing2',
-        (message) => {
-          this.billingService.createOrder(
-            JSON.parse(message.content.toString()),
+               // 재시도 횟수가 3회 미만이면 메시지를 재시도
+               const delay = 1000 * Math.pow(2, retryCount);
+               await new Promise((resolve) => setTimeout(resolve, delay));
+               this.channel.nack(msg, false, true);
+               console.log(`Retrying in ${delay} ms. Retry count: ${retryCount}`);
+              }
+
+            }else{
+              // 메시지를 처음 받았을 때
+              msg.properties.headers['x-redelivered-count'] = 1;
+              this.channel.nack(msg, false, true);
+            }
+        }
+      },
+      { noAck: false }
+    );
+    // await channel.close();
+
+    await this.channel.consume(
+      'billing2',
+      async (msg) => {
+        try {
+          if(!msg.content.toString()){
+            throw new Error('빈 메시지를 보냈는데?')
+          }
+          if(!msg.fields){
+            throw new Error('fields가 없는데?')
+          }
+
+          this.billingService.createOrder(JSON.parse(msg.content.toString()));
+          this.channel.ack(msg, true);
+          console.log(
+            'Received billing2 message:',
+            JSON.parse(msg.content.toString()),
           );
-          channel.ack(message);
-        },
-        { noAck: false },
-      );
-      console.log('Received billing message:', data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      await channel.close();
-    }
-  }
+          console.log(msg.fields)
+        } catch (error) {
+          if(!msg.fields) throw new Error (`fields가 없는데? : ${msg}`)
+          if(msg.properties.headers['x-redelivered-count']){
+            const retryCount = msg.properties.headers['x-redelivered-count'];
+          
+              if (retryCount >= 3) {
+              // 재시도 횟수가 3회 이상이면 메시지를 버림
+              this.channel.reject(msg, false);
+              console.error(`retryCount: ${retryCount}, ${msg}를 버립니다.`);
+              } else {
 
-  @MessagePattern('exchange1.payment1')
-  async subscribePayment1(message: any): Promise<void> {
-    const channel = await this.rabbitmqChannelProvider.createChannel();
-    try {
-      const data = JSON.parse(message.content.toString());
-      await channel.consume(
-        'payment1',
-        (message) => {
-          this.billingService.payment(JSON.parse(message.content.toString()));
-          channel.ack(message);
-        },
-        { noAck: false },
-      );
-      console.log('Received payment message:', data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      await channel.close();
-    }
-  }
+               // 재시도 횟수가 3회 미만이면 메시지를 재시도
+               const delay = 1000 * Math.pow(2, retryCount);
+               await new Promise((resolve) => setTimeout(resolve, delay));
+               this.channel.nack(msg, false, true);
+               console.log(`Retrying in ${delay} ms. Retry count: ${retryCount}`);
+              }
 
-  @MessagePattern('exchange2.payment2')
-  async subscribePayment2(message: any): Promise<void> {
-    const channel = await this.rabbitmqChannelProvider.createChannel();
-    try {
-      const data = JSON.parse(message.content.toString());
-      await channel.consume(
-        'payment2',
-        (message) => {
-          this.billingService.payment(JSON.parse(message.content.toString()));
-          channel.ack(message);
-        },
-        { noAck: false },
-      );
-      console.log('Received payment message:', data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      await channel.close();
-    }
+            }else{
+              // 메시지를 처음 받았을 때
+              msg.properties.headers['x-redelivered-count'] = 1;
+              this.channel.nack(msg, false, true);
+            }
+        }
+      },
+      { noAck: false },
+    );
+    // await channel.close();
+
+    await this.channel.consume(
+      'payment2',
+      async (msg) => {
+        try {
+          if(!msg.content.toString()){
+            throw new Error('빈 메시지를 보냈는데?')
+          }
+          if(!msg.fields){
+            throw new Error('fields가 없는데?')
+          }
+
+          this.billingService.payment(JSON.parse(msg.content.toString()));
+          this.channel.ack(msg, true); 
+          console.log(
+            'Received payment2 message:',
+            JSON.parse(msg.content.toString()),
+          );
+        } catch (error) {
+          if(!msg.fields) throw new Error (`fields가 없는데? : ${msg}`)
+          if(msg.properties.headers['x-redelivered-count']){
+            const retryCount = msg.properties.headers['x-redelivered-count'];
+          
+              if (retryCount >= 3) {
+              // 재시도 횟수가 3회 이상이면 메시지를 버림
+              this.channel.reject(msg, false);
+              console.error(`retryCount: ${retryCount}, ${msg}를 버립니다.`);
+              } else {
+
+               // 재시도 횟수가 3회 미만이면 메시지를 재시도
+               const delay = 1000 * Math.pow(2, retryCount);
+               await new Promise((resolve) => setTimeout(resolve, delay));
+               this.channel.nack(msg, false, true);
+               console.log(`Retrying in ${delay} ms. Retry count: ${retryCount}`);
+              }
+
+            }else{
+              // 메시지를 처음 받았을 때
+              msg.properties.headers['x-redelivered-count'] = 1;
+              this.channel.nack(msg, false, true);
+            }
+        }
+      },
+      { noAck: false }, 
+    );
+    // await channel.close();
   }
 }

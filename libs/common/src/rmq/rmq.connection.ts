@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnApplicationBootstrap,
+} from '@nestjs/common';
 import { Channel, connect } from 'amqplib';
 import { ConfigService } from '@nestjs/config';
 import rabbitmqConfig from './rmq.conf';
@@ -30,6 +34,7 @@ export class RabbitmqChannelProvider {
       );
       const connection = await connect(rabbitmqUrl);
       const channel = await connection.createChannel();
+      await channel.prefetch(10, true);
 
       // Declare exchanges
       for (const exchange of rabbitmqConfig.exchanges) {
@@ -38,21 +43,33 @@ export class RabbitmqChannelProvider {
           exchange.type,
           exchange.options,
         );
-
-        // Declare queues and bind them to exchanges
-        for (const queue of rabbitmqConfig.queues) {
-          await channel.assertQueue(queue.name, queue.options);
-          for (const binding of queue.bindings) {
-            await channel.bindQueue(
-              queue.name,
-              binding.exchange,
-              binding.routingKey,
-            );
-          }
-        }
-
-        return channel;
       }
+
+      // Declare queues and bind them to exchanges
+      for (const queue of rabbitmqConfig.queues) {
+        await channel.assertQueue(queue.name, queue.options);
+        for (const binding of queue.bindings) {
+          await channel.bindQueue(
+            queue.name,
+            binding.exchange,
+            binding.routingKey,
+          );
+        }
+      }
+
+      // Declare queues and bind them to exchanges
+      for (const queue of rabbitmqConfig.queues) {
+        await channel.assertQueue(queue.name, queue.options);
+        for (const binding of queue.bindings) {
+          await channel.bindQueue(
+            queue.name,
+            binding.exchange,
+            binding.routingKey,
+          );
+        }
+      }
+
+      return channel;
     } catch (e) {
       console.log(e);
       throw new Error(e.response);
