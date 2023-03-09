@@ -47,27 +47,6 @@ export class ConnectionService {
     return results;
   }
 
-  async masterSQL(
-    ...args: any
-  ): Promise<
-    | RowDataPacket[][]
-    | RowDataPacket[]
-    | OkPacket
-    | OkPacket[]
-    | ResultSetHeader
-  > {
-    let data = [];
-
-    if (typeof args[0] === 'string' && args[1] instanceof Array)
-      data = await this.masterConnection.query(args[0], args[1]);
-    else if (args[0] instanceof SQLStatement && args[1] instanceof Array)
-      data = await this.masterConnection.query(args[0], args[1]);
-    else if (args[0] instanceof SQLStatement && args[1] === undefined)
-      data = await this.masterConnection.query(args[0]);
-
-    return data[0];
-  }
-
   async slaveQuery(
     rawQuery: string,
     params: any[],
@@ -82,26 +61,5 @@ export class ConnectionService {
     const [results, fields] = await conn.query(rawQuery, params);
     conn.release();
     return results;
-  }
-
-  async slaveSQL(
-    ...args: any
-  ): Promise<
-    | RowDataPacket[][]
-    | RowDataPacket[]
-    | OkPacket
-    | OkPacket[]
-    | ResultSetHeader
-  > {
-    let data = [];
-
-    if (typeof args[0] === 'string' && args[1] instanceof Array)
-      data = await this.slaveConnection.query(args[0], args[1]);
-    else if (args[0] instanceof SQLStatement && args[1] instanceof Array)
-      data = await this.slaveConnection.query(args[0], args[1]);
-    else if (args[0] instanceof SQLStatement && args[1] === undefined)
-      data = await this.slaveConnection.query(args[0]);
-
-    return data[0];
   }
 }
