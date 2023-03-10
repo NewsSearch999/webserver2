@@ -116,19 +116,6 @@ export class OrdersService {
    */
 
   async getProducts(price: number, productId?: number) {
-    // const cursor = ''.concat(
-    //   this.cursorFunction.lpad(price.toString(), 10, '0'),
-    //   this.cursorFunction.lpad(productId.toString(), 10, '0')
-    // )
-
-    // console.log(cursor);
-    // const seekQuery = `
-    // SELECT productId, productName, image, price, stock
-    // FROM products
-    // WHERE CONCAT(LPAD(price, 10, '0'), LPAD(productId, 10, '0')) > '${cursor}' AND isDeleted = false
-    // ORDER BY price, productId
-    // LIMIT 20`;
-
     const seekQuery = `
     SELECT productId, productName, image, price, stock
     FROM products

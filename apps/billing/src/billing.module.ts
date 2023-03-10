@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { BillingController } from './billing.controller';
+import { BillingControllerA } from './billing.controller.A';
 import { BillingService } from './billing.service';
 import {
   RabbitMQClient,
@@ -10,13 +10,17 @@ import { ConnectionService } from './connection/connection.service';
 import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi'
+import { BillingControllerB } from './billing.controller.B';
+import { BillingControllerC } from './billing.controller.C';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validationSchema: Joi.object({
-        RABBIT_MQ_URI: Joi.string().required(),
+      validationSchema: Joi.object({ 
+        RABBIT_MQ_URI_A:  Joi.string().required(),
+        RABBIT_MQ_URI_B:  Joi.string().required(),
+        RABBIT_MQ_URI_C:  Joi.string().required(),
         MASTER_DB_HOST: Joi.string().required(),
         SLAVE1_DB_HOST: Joi.string().required(),
         DB_USER: Joi.string().required(),
@@ -27,7 +31,7 @@ import * as Joi from 'joi'
       envFilePath: ['./libs/.libs.env'],
     }),
   ],
-  controllers: [BillingController],
+  controllers: [BillingControllerA, BillingControllerB, BillingControllerC],
   providers: [
     BillingService,
     ConnectionService,

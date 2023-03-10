@@ -59,7 +59,7 @@ export class OrdersController {
    * @param req
    * @returns
    */
-  @UseGuards(AuthGuard())
+  // @UseGuards(AuthGuard())
   @Put('orders/:orderid')
   @ApiOperation({ summary: '주문결제' })
   @ApiResponse({ status: 201, description: '주문처리중' })

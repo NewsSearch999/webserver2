@@ -1,7 +1,5 @@
 import {
   Injectable,
-  OnModuleInit,
-  OnApplicationBootstrap,
 } from '@nestjs/common';
 import { Channel, connect } from 'amqplib';
 import { ConfigService } from '@nestjs/config';
