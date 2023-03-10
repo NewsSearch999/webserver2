@@ -13,6 +13,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
+      - run: npm install -g npm@9.6.1
       - name: Create .env
         run: |
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> ./libs/.libs.env
