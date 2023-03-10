@@ -7,10 +7,12 @@ jobs:
   build-image:
     name: Build Image
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
       - name: Create .env
         run: |
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> ./libs/.libs.env
@@ -45,4 +47,3 @@ jobs:
         run: |
           docker-compose -f docker-compose.aws.yml --env-file ./libs/.libs.env build
           docker-compose -f docker-compose.aws.yml --env-file ./libs/.libs.env push
-
