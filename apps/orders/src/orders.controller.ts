@@ -17,6 +17,7 @@ import { NumberPipe } from './pipes/number.pipe';
 import { StringPipe } from './pipes/string.pipe';
 import { AuthGuard } from '@nestjs/passport';
 import {
+  ApiBearerAuth,
   ApiOperation,
   ApiParam,
   ApiProperty,
@@ -36,13 +37,13 @@ export class OrdersController {
    * @body productId, quantity
    * @returns
    */
-  // @UseGuards(AuthGuard())
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard())
   @Post('orders')
   @ApiOperation({ summary: '주문생성' })
   @ApiResponse({ status: 201, description: '주문생성 완료' })
   async createOrder(@Body() orderDto: OrderDto, @Req() req) {
-    // const { userId } = req.user; //주문자 ID
-    let userId = 1002;
+    const { userId } = req.user; //주문자 ID
     const request = {
       productId: orderDto.productId,
       quantity: orderDto.quantity,
@@ -59,7 +60,8 @@ export class OrdersController {
    * @param req
    * @returns
    */
-  // @UseGuards(AuthGuard())
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGuard())
   @Put('orders/:orderid')
   @ApiOperation({ summary: '주문결제' })
   @ApiResponse({ status: 201, description: '주문처리중' })
@@ -68,8 +70,7 @@ export class OrdersController {
     @Param('orderid', NumberPipe) orderId: number,
     @Req() req,
   ) {
-    // const { userId } = req.user;
-    let userId = 1002
+    const { userId } = req.user;
     return this.ordersService.paymentOrder(orderId, userId);
   }
 
@@ -77,6 +78,7 @@ export class OrdersController {
    * 주문조회
    * @returns
    */
+  @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard())
   @Get('orders')
   @ApiOperation({ summary: '주문조회' })
