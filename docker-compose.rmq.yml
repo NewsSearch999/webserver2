@@ -1,0 +1,12 @@
+version: '2'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/
+      - ./rabbitmq/data:rabbitmq/:/var/lib/rabbitmq/
+      - ./rabbitmq/logs/:/var/lib/rabbitmq/
+    ports:
+      - '5672:5672' 
+      - '15672:15672'

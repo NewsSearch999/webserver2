@@ -7,9 +7,7 @@ import { ConnectionService } from './connection/connection.service';
 export class BillingService {
   //logger 객체가 비동기적으로 동작하지 않아 cosole.log로 수정합니다.
   // private readonly logger = new Logger(BillingService.name);
-  constructor(
-    private readonly connectionService: ConnectionService,
-    ) {}
+  constructor(private readonly connectionService: ConnectionService) {}
 
   async findProductByPK(productId) {
     const searchQuery = `SELECT * FROM products WHERE productId = (?)`;
@@ -22,20 +20,21 @@ export class BillingService {
   async createOrder(request) {
     const createQuery = `INSERT INTO orders (productId, quantity, price, orderState, deliveryState,userId) values (?)`;
     const connection =
-    await this.connectionService.masterConnection.getConnection();
-    
+      await this.connectionService.masterConnection.getConnection();
+
     try {
       /**트랜잭션 시작 */
       await connection.query('START TRANSACTION');
+      await connection.query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
 
-      /**상품 정보 확인 */  
+      /**상품 정보 확인 */
       const product = await this.findProductByPK(request.productId);
       if (!product[0]) throw new HttpException('상품정보가 없습니다', 403);
-      if (product[0].stock <= 0){
-        return '재고 수량이 없습니다.'
+      if (product[0].stock <= 0) {
+        return '재고 수량이 없습니다.';
       }
 
-      const order = await this.connectionService.masterQuery(createQuery, [
+      const [results, fields] = await connection.query(createQuery, [
         [
           request.productId,
           request.quantity,
@@ -46,14 +45,15 @@ export class BillingService {
         ],
       ]);
 
-      console.log(order[0])
-      /**트랜잭션 커밋 */
-      await connection.commit();
-      connection.release();
-      console.log(
-        `[주문완료] 주문번호:${order[0].orderId} 수량:${order[0].quantity}`,
-      );
-      return order[0];
+      if (results) {
+        /**트랜잭션 커밋 */
+        await connection.commit();
+        connection.release();
+        console.log(
+          `[주문완료] 상품번호:${request.productId}, 수량:${request.quantity}`,
+        );
+        return fields;
+      }
     } catch (e) {
       /**트랜잭션 롤백 */
       await connection.query('ROLLBACK');
@@ -64,7 +64,7 @@ export class BillingService {
   }
 
   /**결제 트랜잭션 */
-  async payment({ orderData }) {
+  async payment(orderData) {
     const connection =
       await this.connectionService.masterConnection.getConnection();
     try {
@@ -75,6 +75,7 @@ export class BillingService {
       const productUpdateQuery = `
         UPDATE products SET stock = ?
         WHERE productId = ?
+        FOR UPDATE
         `;
 
       /**주문 상태 업데이트 */
@@ -114,14 +115,14 @@ export class BillingService {
 
       /**트랜잭션 커밋 */
       await connection.commit();
-      await connection.release();
+      connection.release();
       console.log(
         `[결제완료] 주문번호:${paymentData.orderId} 상품명:${paymentData.productName} 수량:${paymentData.quantity} 결제금액${paymentData.payment}원`,
       );
     } catch (e) {
       /**트랜잭션 롤백 */
       await connection.query('ROLLBACK');
-      await connection.release();
+      connection.release();
       console.log(e);
       throw new HttpException(e.response, e.status);
     }
