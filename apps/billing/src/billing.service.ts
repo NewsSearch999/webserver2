@@ -25,6 +25,7 @@ export class BillingService {
     try {
       /**트랜잭션 시작 */
       await connection.query('START TRANSACTION');
+      await connection.query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
 
       /**상품 정보 확인 */
       const product = await this.findProductByPK(request.productId);
@@ -48,7 +49,9 @@ export class BillingService {
         /**트랜잭션 커밋 */
         await connection.commit();
         connection.release();
-        console.log(`[주문완료] 상품번호:${request.productId}, 수량:${request.quantity}`);
+        console.log(
+          `[주문완료] 상품번호:${request.productId}, 수량:${request.quantity}`,
+        );
         return fields;
       }
     } catch (e) {
@@ -61,7 +64,7 @@ export class BillingService {
   }
 
   /**결제 트랜잭션 */
-  async payment( orderData ) {
+  async payment(orderData) {
     const connection =
       await this.connectionService.masterConnection.getConnection();
     try {
@@ -72,6 +75,7 @@ export class BillingService {
       const productUpdateQuery = `
         UPDATE products SET stock = ?
         WHERE productId = ?
+        FOR UPDATE
         `;
 
       /**주문 상태 업데이트 */
@@ -80,7 +84,6 @@ export class BillingService {
         WHERE orderId = ?
         `;
 
-  
       /**남은 수량 */
       const leftQuantity = orderData.stock - orderData.quantity;
 
