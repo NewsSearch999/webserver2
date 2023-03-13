@@ -2,7 +2,6 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import mysql, { OkPacket, ResultSetHeader, RowDataPacket } from 'mysql2';
 import * as connection from 'mysql2/promise';
-import { SQLStatement } from 'sql-template-strings';
 
 @Injectable()
 export class ConnectionService {
@@ -18,7 +17,7 @@ export class ConnectionService {
       user: this.configService.get<string>('DB_USER'),
       database: this.configService.get<string>('DB_NAME'),
       password: this.configService.get<string>('DB_PASSWORD'),
-
+      // charset: 'utf8mb4'
     });
 
     this.slaveConnection = connection.createPool({
@@ -27,7 +26,7 @@ export class ConnectionService {
       user: this.configService.get<string>('DB_USER'),
       database: this.configService.get<string>('DB_NAME'),
       password: this.configService.get<string>('DB_PASSWORD'),
-   
+      // charset: 'utf8mb4'
     });
   }
 

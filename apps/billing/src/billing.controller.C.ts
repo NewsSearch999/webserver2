@@ -2,7 +2,6 @@ import { Controller, OnModuleInit } from '@nestjs/common';
 import { BillingService } from './billing.service';
 import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
 // import { Channel, connect } from 'amqplib/callback_api';
-// import { Channel, connect } from 'amqplib';
 import { Channel, connect, ConsumeMessage, MessageProperties } from 'amqplib';
 
 @Controller()
@@ -30,7 +29,6 @@ export class BillingControllerC implements OnModuleInit {
 
           this.billingService.createOrder(JSON.parse(msg.content.toString()));
           this.channel.ack(msg, true);
-          // this.channel.ackAll()
           console.log(
             'Received billing1 message:',
             JSON.parse(msg.content.toString()),
@@ -77,7 +75,8 @@ export class BillingControllerC implements OnModuleInit {
             throw new Error('fields가 없는데?');
           }
 
-          this.billingService.payment(JSON.parse(msg.content.toString()));
+          const orderData = JSON.parse(msg.content.toString())
+          this.billingService.payment(orderData);
           this.channel.ack(msg, true);
           console.log(
             'Received payment1 message:',
@@ -171,8 +170,8 @@ export class BillingControllerC implements OnModuleInit {
           if (!msg.fields) {
             throw new Error('fields가 없는데?');
           }
-
-          this.billingService.payment(JSON.parse(msg.content.toString()));
+          const orderData = JSON.parse(msg.content.toString())
+          this.billingService.payment(orderData);
           this.channel.ack(msg, true);
           console.log(
             'Received payment2 message:',

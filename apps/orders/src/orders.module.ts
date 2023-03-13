@@ -7,10 +7,10 @@ import { Order } from '@app/common/entity/order.entity';
 import { Product } from '@app/common/entity/product.entity';
 import { DatabaseModule } from '@app/common/database/Database.module';
 import { PassportModule } from '@nestjs/passport';
-
 import { AuthModule } from './auth/auth.module';
-import { ExchangeFunction } from './util/exchange.function';
 import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
+import { OrdersPublish } from './orders.publish';
+
 
 @Module({
   imports: [
@@ -32,8 +32,8 @@ import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
   providers: [
     OrdersService,
     ConnectionService,
-    ExchangeFunction,
     RabbitmqChannelProvider,
+    OrdersPublish
   ],
 })
 export class OrdersModule {}
