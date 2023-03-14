@@ -70,15 +70,15 @@ export class BillingService {
     try {
       /**트랜잭션 시작 */
       await connection.query('START TRANSACTION');
-      // await connection.query('SET TRANSACTION ISOLATION LEVEL READ COMMITTED');
+      //await connection.query('SET SESSIION TRANSACTION ISOLATION LEVEL READ COMMITTED');
       /**
+       * https://dev.mysql.com/doc/refman/8.0/en/set-transaction.html
        * code: 'ER_CANT_CHANGE_TX_ISOLATION',
           errno: 1568,
           sql: 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED',
           sqlState: '25001',
           sqlMessage: "Transaction characteristics can't be changed while a transaction is in progress"
        */
-      console.log(orderData)
       /**상품 재고 업데이트 */
       const productUpdateQuery = `UPDATE products SET stock = ? WHERE productId = ?`;
       // const productUpdateQuery = `UPDATE products SET stock = ? WHERE productId = ? FOR UPDATE`;

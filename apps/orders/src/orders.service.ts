@@ -82,6 +82,7 @@ export class OrdersService {
 
     try {
       await connection.query('START TRANSACTION');
+      //await connection.query('SET SESSIION TRANSACTION ISOLATION LEVEL READ COMMITTED');
       /**주문 정보 조회 */
       const result = await connection.query(seekQuery, [Number(orderId)]);
       const orderData = JSON.parse(JSON.stringify(result));

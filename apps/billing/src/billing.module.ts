@@ -32,6 +32,6 @@ import { BillingControllerC } from './billing.controller.C';
     ConnectionService,
     RabbitmqChannelProvider
   ],
-  exports: [ConnectionService, RabbitmqChannelProvider ]
+  //exports: [ConnectionService, RabbitmqChannelProvider ]
 })
 export class BillingModule {}
