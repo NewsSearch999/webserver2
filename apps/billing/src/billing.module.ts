@@ -1,11 +1,6 @@
 import { Module } from '@nestjs/common';
 import { BillingControllerA } from './billing.controller.A';
 import { BillingService } from './billing.service';
-import {
-  RabbitMQClient,
-  RabbitMQServer,
-  ExchangeType,
-} from '@lukadriel/nestjs-rabbitmq-transporter';
 import { ConnectionService } from './connection/connection.service';
 import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -37,6 +32,6 @@ import { BillingControllerC } from './billing.controller.C';
     ConnectionService,
     RabbitmqChannelProvider
   ],
-  exports: [ConnectionService, RabbitmqChannelProvider ]
+  //exports: [ConnectionService, RabbitmqChannelProvider ]
 })
 export class BillingModule {}

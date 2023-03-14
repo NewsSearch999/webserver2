@@ -16,6 +16,7 @@ export class ConnectionService {
       user: configService.get<string>('DB_USER'),
       database: configService.get<string>('DB_NAME'),
       password: configService.get<string>('DB_PASSWORD'),
+      // charset: 'utf8mb4'
     });
 
     this.slave1Connection = connection.createPool({
@@ -24,6 +25,7 @@ export class ConnectionService {
       user: configService.get<string>('DB_USER'),
       database: configService.get<string>('DB_NAME'),
       password: configService.get<string>('DB_PASSWORD'),
+      // charset: 'utf8mb4'
     });
 
     this.slave2Connection = connection.createPool({
@@ -32,8 +34,21 @@ export class ConnectionService {
       user: configService.get<string>('DB_USER'),
       database: configService.get<string>('DB_NAME'),
       password: configService.get<string>('DB_PASSWORD'),
-      connectionLimit: 500,
+      // charset: 'utf8mb4'
     });
+  }
+
+  async replicaConnectionBalancing(){
+    switch(this.x){
+      case 0:
+        this.x = 1;
+        const conn1 = await this.slave1Connection.getConnection();
+        return conn1
+      case 1:
+        this.x = 0;
+        const conn2 = await this.slave2Connection.getConnection();
+        return conn2
+    }
   }
 
   async masterQuery(

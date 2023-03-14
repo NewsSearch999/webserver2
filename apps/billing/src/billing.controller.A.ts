@@ -1,8 +1,6 @@
 import { Controller, OnModuleInit } from '@nestjs/common';
 import { BillingService } from './billing.service';
 import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
-// import { Channel, connect } from 'amqplib/callback_api';
-// import { Channel, connect } from 'amqplib';
 import { Channel, connect, ConsumeMessage, MessageProperties } from 'amqplib';
 
 @Controller()
@@ -17,21 +15,6 @@ export class BillingControllerA implements OnModuleInit {
   async onModuleInit(): Promise<void> {
     //const channel = await this.rabbitmqChannelProvider.createChannel();
     this.channel = await this.rabbitmqChannelProvider.createChannel();
-    // const urlA = this.configService.get<string>(
-    //   `RABBIT_MQ_URI_A`,
-    // );
-    // const urlB = this.configService.get<string>(
-    //   `RABBIT_MQ_URI_A`,
-    // );
-    // const urlC = this.configService.get<string>(
-    //   `RABBIT_MQ_URI_A`,
-    // );
-    // const connectionA = await connect(urlA);
-    // const connectionB = await connect(urlB);
-    // const connectionC = await connect(urlC);
-    // const channelA = await connectionA.createChannel();
-    // const channelB = await connectionB.createChannel();
-    // const channelC = await connectionB.createChannel();
  
     await this.channel.consume(
       'billing1',
@@ -46,7 +29,6 @@ export class BillingControllerA implements OnModuleInit {
 
           this.billingService.createOrder(JSON.parse(msg.content.toString()));
           this.channel.ack(msg, true);
-          // this.channel.ackAll()
           console.log(
             'Received billing1 message:',
             JSON.parse(msg.content.toString()),
@@ -92,8 +74,8 @@ export class BillingControllerA implements OnModuleInit {
           if (!msg.fields) {
             throw new Error('fields가 없는데?');
           }
-
-          this.billingService.payment(JSON.parse(msg.content.toString()));
+          const orderData = JSON.parse(msg.content.toString())
+          this.billingService.payment(orderData);
           this.channel.ack(msg, true);
           console.log(
             'Received payment1 message:',
@@ -188,7 +170,8 @@ export class BillingControllerA implements OnModuleInit {
             throw new Error('fields가 없는데?');
           }
 
-          this.billingService.payment(JSON.parse(msg.content.toString()));
+          const orderData = JSON.parse(msg.content.toString())
+          this.billingService.payment(orderData);
           this.channel.ack(msg, true);
           console.log(
             'Received payment2 message:',

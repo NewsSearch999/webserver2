@@ -62,15 +62,17 @@ export class OrdersController {
    */
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGuard())
-  @Put('orders/:orderid')
+  @Put('orders/:orderId')
   @ApiOperation({ summary: '주문결제' })
   @ApiResponse({ status: 201, description: '주문처리중' })
   @ApiParam({ name: 'orderId', type: number, description: '주문ID' })
   async paymentOrder(
-    @Param('orderid', NumberPipe) orderId: number,
+    //@Body('orderId', NumberPipe) orderId: number,
+    @Param('orderId', NumberPipe) orderId: number,
     @Req() req,
   ) {
     const { userId } = req.user;
+    //const userId = 1002
     return this.ordersService.paymentOrder(orderId, userId);
   }
 
