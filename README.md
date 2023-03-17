@@ -63,24 +63,9 @@
 <br/>
 
 ## ⚠️ **_트러블 슈팅_**
-**<details><summary>제목</summary>**
+https://www.notion.so/SuperOrder-11ef1dbc148444b8b55efaa4d9f1775b?pvs=4#6204ee1bbd0b4b5899947f0b7619c702
 
-❗**문제**: 문제<br/>
-<br/>
-❓**원인**:원인<br/>
-<br/>
-💡**문제 해결**: 해결
-<br/>
-</details>
 
-**<details><summary>제목</summary>**
-
-❗**문제**: 문제<br/>
-<br/>
-❓**원인**: 원인<br/>
-<br/>
-💡**문제 해결**: <br/>
-<br/>
 
 </details>
 
