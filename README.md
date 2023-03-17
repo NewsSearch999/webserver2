@@ -3,6 +3,7 @@
 >“**실제 서비스에서 무수히 쏟아지는 주문을 어떻게 처리할 수 있을까?”**<br/>
 >대용량 트래픽 처리를 위한 프로젝트 입니다.<br/><br/>
 >**[📎 노션](https://www.notion.so/OrderSearch-11ef1dbc148444b8b55efaa4d9f1775b)**<br/><br/>
+>**[📎 트러블슈팅](https://www.notion.so/SuperOrder-11ef1dbc148444b8b55efaa4d9f1775b?pvs=4#6204ee1bbd0b4b5899947f0b7619c702)**<br/><br/>
 >**[📎 Frontend링크](https://github.com/NewsSearch999/Frontend)**<br/><br/>
 
 
@@ -61,13 +62,6 @@
 
 
 <br/>
-
-## ⚠️ **_트러블 슈팅_**
-https://www.notion.so/SuperOrder-11ef1dbc148444b8b55efaa4d9f1775b?pvs=4#6204ee1bbd0b4b5899947f0b7619c702
-
-
-
-</details>
 
 
 
