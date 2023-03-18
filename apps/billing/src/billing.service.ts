@@ -1,7 +1,7 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { deliveryState } from '@app/common/entity/enum/delivery.enum';
 import { orderState } from '@app/common/entity/enum/order.enum';
-import { ConnectionService } from './connection/connection.service';
+import { ConnectionService } from '@app/common/database/connection.service';
 
 @Injectable()
 export class BillingService {
@@ -120,7 +120,7 @@ export class BillingService {
       await connection.commit();
       connection.release();
       console.log(
-        `[결제완료] 주문번호:${paymentData.orderId} 상품명:${paymentData.productName} 수량:${paymentData.quantity} 결제금액${paymentData.payment}원`
+        `[결제완료] 주문번호:${paymentData.orderId} 상품명:${paymentData.productName} 수량:${paymentData.quantity} 결제금액${paymentData.payment}원`,
       );
     } catch (e) {
       /**트랜잭션 롤백 */

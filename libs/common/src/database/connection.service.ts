@@ -38,16 +38,16 @@ export class ConnectionService {
     });
   }
 
-  async replicaConnectionBalancing(){
-    switch(this.x){
+  async replicaConnectionBalancing() {
+    switch (this.x) {
       case 0:
         this.x = 1;
         const conn1 = await this.slave1Connection.getConnection();
-        return conn1
+        return conn1;
       case 1:
         this.x = 0;
         const conn2 = await this.slave2Connection.getConnection();
-        return conn2
+        return conn2;
     }
   }
 
