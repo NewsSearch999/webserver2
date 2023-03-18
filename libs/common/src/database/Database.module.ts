@@ -29,19 +29,19 @@ const entityPath = path.join(__dirname, 'libs/entity/**/*.entity.ts');
           },
           slaves: [
             {
-              host: configService.get('SLAVE1_DB_HOST'),
+              host: configService.get('REPLICA_DB_HOST'),
               port: +configService.get('DB_PORT'),
               username: configService.get('DB_USER'),
               password: configService.get('DB_PASSWORD'),
               database: configService.get('DB_NAME'),
             },
-            {
-              host: configService.get('SLAVE2_DB_HOST'),
-              port: +configService.get('DB_PORT'),
-              username: configService.get('DB_USER'),
-              password: configService.get('DB_PASSWORD'),
-              database: configService.get('DB_NAME'),
-            },
+            // {
+            //   host: configService.get('SLAVE2_DB_HOST'),
+            //   port: +configService.get('DB_PORT'),
+            //   username: configService.get('DB_USER'),
+            //   password: configService.get('DB_PASSWORD'),
+            //   database: configService.get('DB_NAME'),
+            // },
           ],
         },
         synchronize: false,

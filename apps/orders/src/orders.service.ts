@@ -8,27 +8,28 @@ import {
 import { ConnectionService } from './connection/connection.service';
 import { orderState } from '@app/common/entity/enum/order.enum';
 import { OrdersPublish } from './orders.publish';
+import { Mutex } from 'async-mutex';
 
 @Injectable()
 export class OrdersService {
-  private channel: any;
-
+  private readonly mutex = new Mutex();
   constructor(
     private readonly connectionService: ConnectionService,
     private readonly ordersPublish: OrdersPublish,
+    
   ) // @Inject(BILLING) private billingClient: ClientProxy, // @Inject(PAYMENT) private paymentClient: ClientProxy,
   {}
 
   async findProductByPK(productId) {
     const searchQuery = `SELECT * FROM products WHERE productId = (?)`;
     const connection =
-      await this.connectionService.replicaConnectionBalancing();
+      await this.connectionService.replicaConnection.getConnection();
     await connection.query('START TRANSACTION');
 
     const product = await connection.query(searchQuery, [[productId]]);
     await connection.commit();
     connection.release();
-    return product;
+    return product[0][0];
   }
 
   /**
@@ -73,23 +74,20 @@ export class OrdersService {
     LEFT OUTER JOIN products ON orders.productId = products.productId 
     WHERE orderId = ?`;
 
-    const connection =
-      await this.connectionService.replicaConnectionBalancing();
-
-    //balanceArr = [exchange1 or 2, billing1 or 2, payment1 or 2]
-    // const [exchangeName, billingQueue, paymentQueue] =
-    //   this.exchangeFunction.exchangeBalancing();
-
+    // const connection =
+    //   await this.connectionService.replicaConnectionBalancing();
+    const connection = await this.connectionService.replicaConnection.getConnection()
     try {
+      // Acquire the mutex to prevent concurrent access to the order data
+      await this.mutex.runExclusive(async () => {
       await connection.query('START TRANSACTION');
-      //await connection.query('SET SESSIION TRANSACTION ISOLATION LEVEL READ COMMITTED');
+
       /**주문 정보 조회 */
       const result = await connection.query(seekQuery, [Number(orderId)]);
       const orderData = JSON.parse(JSON.stringify(result));
       console.log('result:', result[0]); //배열 안에 RowData 배열이 들어 있다.
       console.log('orderData:', orderData[0][0]);
 
-      // for (const row of orderData) {
       /**주문자 확인 */
       if (orderData[0][0].userId !== userId)
         throw new HttpException('주문자가 일치하지 않습니다', 403);
@@ -101,7 +99,6 @@ export class OrdersService {
       /**상품 수량 체크*/
       if (orderData[0][0].stock < orderData[0][0].quantity)
         throw new HttpException('재고가 부족합니다', 403);
-      // }
 
       await connection.commit();
       connection.release();
@@ -109,20 +106,14 @@ export class OrdersService {
       /**메세지큐(결제 데이터 전송)*/
       await this.ordersPublish.publishPayment(orderData[0][0]);
 
-      // this.channel = await this.rabbitmqChannelProvider.createChannel();
-      // console.log(`${this.exchangeName}.${this.paymentQueue}`)
-      // this.channel.publish(
-      //   this.exchangeName,
-      //   `${this.exchangeName}.${this.paymentQueue}`,
-      //   Buffer.from(JSON.stringify(orderData[0])),
-      // );
       return `orderId:${orderData[0][0].orderId}, productName:${orderData[0][0].productName} : 결제처리 중입니다.`;
+      });
     } catch (error) {
       await connection.query('ROLLBACK');
       connection.release();
       console.log(error);
       throw new HttpException(error.response, error.status);
-    }
+    } 
   }
 
   /**
@@ -138,12 +129,18 @@ export class OrdersService {
     WHERE ((price > ? AND isDeleted = false) OR (price = ? AND productId > ? AND isDeleted = false))
     ORDER BY price, productId
     LIMIT 20`;
+    const connection =
+      await this.connectionService.replicaConnection.getConnection();
 
-    return this.connectionService.slaveQuery(seekQuery, [
+    const products = await connection.query(seekQuery, [
       price,
       price,
       productId,
     ]);
+
+    connection.release();
+    
+    return products[0]
   }
 
   /**
@@ -162,13 +159,18 @@ export class OrdersService {
     WHERE ((price > ? AND productName = ? AND isDeleted = false) OR (price = ? AND productName = ? AND productId > ? AND isDeleted = false))
     ORDER BY price, productId
     LIMIT 20`;
-    return this.connectionService.slaveQuery(seekQuery, [
+
+    const connection =
+    await this.connectionService.replicaConnection.getConnection();
+    const result = await connection.query(seekQuery, [
       lastPrice,
       productName,
       lastPrice,
       productName,
       productId,
     ]);
+
+    return result[0]
   }
 
   /**주문 조회 */
@@ -178,6 +180,11 @@ export class OrdersService {
     LEFT OUTER JOIN products
     ON orders.productId = products.productId
     WHERE orders.userId = ?`;
-    return this.connectionService.slaveQuery(searchQuery, [userId]);
+    const connection =
+    await this.connectionService.replicaConnection.getConnection();
+    const orders = await connection.query(searchQuery, [userId]);
+
+    connection.release();
+    return orders[0]
   }
 }

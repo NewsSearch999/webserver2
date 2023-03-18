@@ -6,7 +6,7 @@ import * as connection from 'mysql2/promise';
 @Injectable()
 export class ConnectionService {
   public masterConnection: connection.Pool;
-  public slaveConnection: connection.Pool;
+  public replicaConnection: connection.Pool;
   constructor(
   private configService:ConfigService
     ) {
@@ -20,8 +20,8 @@ export class ConnectionService {
       // charset: 'utf8mb4'
     });
 
-    this.slaveConnection = connection.createPool({
-      host: this.configService.get<string>('SLAVE1_DB_HOST'),
+    this.replicaConnection = connection.createPool({
+      host: this.configService.get<string>('REPLICA_DB_HOST'),
       port: this.configService.get<number>('DB_PORT'),
       user: this.configService.get<string>('DB_USER'),
       database: this.configService.get<string>('DB_NAME'),
@@ -30,35 +30,35 @@ export class ConnectionService {
     });
   }
 
-  async masterQuery(
-    rawQuery: string,
-    params: any[],
-  ): Promise<
-    | RowDataPacket[][]
-    | RowDataPacket[]
-    | OkPacket
-    | OkPacket[]
-    | ResultSetHeader
-  > {
-    const conn = await this.masterConnection.getConnection();
-    const [results, fields] = await conn.query(rawQuery, params);
-    conn.release();
-    return results;
-  }
+//   async masterQuery(
+//     rawQuery: string,
+//     params: any[],
+//   ): Promise<
+//     | RowDataPacket[][]
+//     | RowDataPacket[]
+//     | OkPacket
+//     | OkPacket[]
+//     | ResultSetHeader
+//   > {
+//     const conn = await this.masterConnection.getConnection();
+//     const [results, fields] = await conn.query(rawQuery, params);
+//     conn.release();
+//     return results;
+//   }
 
-  async slaveQuery(
-    rawQuery: string,
-    params: any[],
-  ): Promise<
-    | RowDataPacket[][]
-    | RowDataPacket[]
-    | OkPacket
-    | OkPacket[]
-    | ResultSetHeader
-  > {
-    const conn = await this.slaveConnection.getConnection();
-    const [results, fields] = await conn.query(rawQuery, params);
-    conn.release();
-    return results;
-  }
+//   async slaveQuery(
+//     rawQuery: string,
+//     params: any[],
+//   ): Promise<
+//     | RowDataPacket[][]
+//     | RowDataPacket[]
+//     | OkPacket
+//     | OkPacket[]
+//     | ResultSetHeader
+//   > {
+//     const conn = await this.slaveConnection.getConnection();
+//     const [results, fields] = await conn.query(rawQuery, params);
+//     conn.release();
+//     return results;
+//   }
 }

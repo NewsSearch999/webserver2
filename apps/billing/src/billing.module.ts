@@ -17,7 +17,7 @@ import { BillingControllerC } from './billing.controller.C';
         RABBIT_MQ_URI_B:  Joi.string().required(),
         RABBIT_MQ_URI_C:  Joi.string().required(),
         MASTER_DB_HOST: Joi.string().required(),
-        SLAVE1_DB_HOST: Joi.string().required(),
+        REPLICA_DB_HOST: Joi.string().required(),
         DB_USER: Joi.string().required(),
         DB_PASSWORD : Joi.string().required(),
         DB_NAME : Joi.string().required(),

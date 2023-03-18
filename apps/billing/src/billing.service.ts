@@ -11,10 +11,14 @@ export class BillingService {
 
   async findProductByPK(productId: number) {
     const searchQuery = `SELECT * FROM products WHERE productId = (?)`;
-    const product = await this.connectionService.slaveQuery(searchQuery, [
-      [productId],
-    ]);
-    return product;
+    const connection =
+      await this.connectionService.replicaConnection.getConnection();
+    await connection.query('START TRANSACTION');
+    const product = await connection.query(searchQuery, [[productId]]);
+    await connection.commit();
+    connection.release();
+
+    return product[0][0];
   }
 
   async createOrder(request) {
@@ -29,8 +33,8 @@ export class BillingService {
 
       /**상품 정보 확인 */
       const product = await this.findProductByPK(request.productId);
-      if (!product[0]) throw new HttpException('상품정보가 없습니다', 403);
-      if (product[0].stock <= 0) {
+      if (!product) throw new HttpException('상품정보가 없습니다', 403);
+      if (product.stock <= 0) {
         return '재고 수량이 없습니다.';
       }
 
@@ -120,7 +124,7 @@ export class BillingService {
       await connection.commit();
       connection.release();
       console.log(
-        `[결제완료] 주문번호:${paymentData.orderId} 상품명:${paymentData.productName} 수량:${paymentData.quantity} 결제금액${paymentData.payment}원`
+        `[결제완료] 주문번호:${paymentData.orderId} 상품명:${paymentData.productName} 수량:${paymentData.quantity} 결제금액${paymentData.payment}원`,
       );
     } catch (e) {
       /**트랜잭션 롤백 */
