@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConnectionService } from './connection/connection.service';
+import { ConnectionService } from '@app/common/database/connection.service';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { Order } from '@app/common/entity/order.entity';
@@ -12,7 +12,6 @@ import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
 import { OrdersPublish } from './orders.publish';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from '@app/common/database/Database.module';
-
 
 @Module({
   imports: [
@@ -31,7 +30,7 @@ import { DatabaseModule } from '@app/common/database/Database.module';
     OrdersService,
     ConnectionService,
     RabbitmqChannelProvider,
-    OrdersPublish
+    OrdersPublish,
   ],
 })
 export class OrdersModule {}

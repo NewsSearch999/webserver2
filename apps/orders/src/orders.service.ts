@@ -5,14 +5,12 @@ import {
   NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
-import { ConnectionService } from './connection/connection.service';
+import { ConnectionService } from '@app/common/database/connection.service';
 import { orderState } from '@app/common/entity/enum/order.enum';
 import { OrdersPublish } from './orders.publish';
-import { Mutex } from 'async-mutex';
 
 @Injectable()
 export class OrdersService {
-  private readonly mutex = new Mutex();
   constructor(
     private readonly connectionService: ConnectionService,
     private readonly ordersPublish: OrdersPublish,
@@ -39,21 +37,7 @@ export class OrdersService {
    */
   async createOrder(request: object) {
     try {
-      //balanceArr = [exchange1 or 2, billing1 or 2, payment1 or 2]
-      // const [exchangeName, billingQueue, paymentQueue] =
-      //   this.exchangeFunction.exchangeBalancing();
-
-      // this.channel = await this.rabbitmqChannelProvider.createChannel();
       await this.ordersPublish.publishOrder(request);
-      //publish(exchange: string, routingKey: string, content: Buffer, options?: Options.Publish): boolean;
-      // this.channel.publish(
-      //   exchangeName,
-      //   `${exchangeName}.${billingQueue}`,
-      //   Buffer.from(JSON.stringify(request)),
-      // );
-      // channel.sendToQueue(billingQueue, Buffer.from(JSON.stringify(request)))
-
-      // await channel.close();
 
       return `${request}: 주문처리 중입니다.`;
     } catch (err) {
@@ -79,35 +63,33 @@ export class OrdersService {
     const connection = await this.connectionService.replicaConnection.getConnection()
     try {
       // Acquire the mutex to prevent concurrent access to the order data
-      await this.mutex.runExclusive(async () => {
       await connection.query('START TRANSACTION');
 
       /**주문 정보 조회 */
       const result = await connection.query(seekQuery, [Number(orderId)]);
-      const orderData = JSON.parse(JSON.stringify(result));
+      const orderData = JSON.parse(JSON.stringify(result))[0][0];
       console.log('result:', result[0]); //배열 안에 RowData 배열이 들어 있다.
-      console.log('orderData:', orderData[0][0]);
+      console.log('orderData:', orderData);
 
       /**주문자 확인 */
-      if (orderData[0][0].userId !== userId)
+      if (orderData.userId !== userId)
         throw new HttpException('주문자가 일치하지 않습니다', 403);
 
       /**결제 유무 확인 */
-      if (orderData[0][0].orderState == orderState.결제완료)
+      if (orderData.orderState == orderState.결제완료)
         throw new HttpException('이미 결제가 완료 되었습니다', 403);
 
       /**상품 수량 체크*/
-      if (orderData[0][0].stock < orderData[0][0].quantity)
+      if (orderData.stock < orderData.quantity)
         throw new HttpException('재고가 부족합니다', 403);
 
       await connection.commit();
       connection.release();
 
       /**메세지큐(결제 데이터 전송)*/
-      await this.ordersPublish.publishPayment(orderData[0][0]);
+      await this.ordersPublish.publishPayment(orderData);
 
-      return `orderId:${orderData[0][0].orderId}, productName:${orderData[0][0].productName} : 결제처리 중입니다.`;
-      });
+      return `orderId:${orderData.orderId}, productName:${orderData.productName} : 결제처리 중입니다.`;
     } catch (error) {
       await connection.query('ROLLBACK');
       connection.release();
@@ -149,7 +131,6 @@ export class OrdersService {
    * @param page
    * @returns
    */
-
   async findProducts(product: string, page: Number, productId?: number) {
     const productName = product;
     //첫 페이지는 가격 0 이상, 이후로는 마지막 가격을 파라미터로 받는다고 가정

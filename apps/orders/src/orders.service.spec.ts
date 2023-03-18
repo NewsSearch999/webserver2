@@ -1,7 +1,7 @@
 import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConnectionService } from './connection/connection.service';
+// import { ConnectionService } from './connection/connection.service';
 import { OrdersService } from './orders.service';
 
 describe('OrdersService', () => {
@@ -11,7 +11,7 @@ describe('OrdersService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OrdersService,
-        ConnectionService,
+       // ConnectionService,
         RabbitmqChannelProvider,
         ConfigService
       ],
