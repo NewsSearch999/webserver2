@@ -44,6 +44,7 @@ export class AuthController {
   @ApiOperation({ summary: 'AuthGuard테스트' })
   @UseGuards(AuthGuard())
   async test(@Req() req) {
+    console.log(this);
     console.log(req);
     return '통과';
   }
