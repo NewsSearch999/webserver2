@@ -1,17 +1,17 @@
 import { RabbitmqChannelProvider } from "@app/common/rmq/rmq.connection";
 import { Injectable } from "@nestjs/common";
-
+import { Channel } from 'amqplib';
 
 @Injectable()
 export class OrdersPublish {
-    private channel: any;
+    private channel: Channel;
     private x = 1;
     constructor(
-        private readonly rabbitmqChannelProvider: RabbitmqChannelProvider
+        private rabbitmqChannelProvider: RabbitmqChannelProvider
     ){
 
     }
-    async publishOrder(request: object) {
+    async publishOrder(request) {
         const balancing = () => {
             switch (this.x) {
               case 1:
@@ -23,15 +23,15 @@ export class OrdersPublish {
             }
           };
           const num = balancing()
-          this.channel = await this.rabbitmqChannelProvider.createChannel();
-          this.channel.publish(
+          const channel = await this.rabbitmqChannelProvider.createChannel();
+          channel.publish(
             `exchange${num}`,
             `exchange${num}.billing${num}`,
             Buffer.from(JSON.stringify(request)),
           );
     }
 
-    async publishPayment(request: object) {
+    async publishPayment(request) {
         const balancing = () => {
             switch (this.x) {
               case 1:
@@ -42,9 +42,11 @@ export class OrdersPublish {
                 return this.x
             }
           };
+          console.log(request)
+          console.log(this.x)
           const num = balancing()
-          this.channel = await this.rabbitmqChannelProvider.createChannel();
-          this.channel.publish(
+          const channel = await this.rabbitmqChannelProvider.createChannel();
+          channel.publish(
             `exchange${num}`,
             `exchange${num}.payment${num}`,
             Buffer.from(JSON.stringify(request)),

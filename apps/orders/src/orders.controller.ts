@@ -38,12 +38,15 @@ export class OrdersController {
    * @returns
    */
   @ApiBearerAuth('access-token')
-  @UseGuards(AuthGuard())
+  //@UseGuards(AuthGuard())
   @Post('orders')
   @ApiOperation({ summary: '주문생성' })
   @ApiResponse({ status: 201, description: '주문생성 완료' })
-  async createOrder(@Body() orderDto: OrderDto, @Req() req) {
-    const { userId } = req.user; //주문자 ID
+  async createOrder(@Body() orderDto: OrderDto, 
+  //@Req() req
+  ) {
+   //const { userId } = req.user; //주문자 ID
+    const userId = 1002
     const request = {
       productId: orderDto.productId,
       quantity: orderDto.quantity,
@@ -51,7 +54,9 @@ export class OrdersController {
       deliveryState: deliveryState.결제대기,
       userId: userId,
     };
-    return this.ordersService.createOrder(request);
+    const result = await this.ordersService.createOrder(request);
+    return result
+
   }
 
   /**
@@ -74,7 +79,8 @@ export class OrdersController {
     const { userId } = req.user;
     //const userId = 1002
     //console.log(orderId)
-    return this.ordersService.paymentOrder(orderId, userId);
+    const result = await this.ordersService.paymentOrder(orderId, userId);
+    return result
   }
 
   /**
@@ -93,7 +99,7 @@ export class OrdersController {
   })
   async getOrders(@Req() req) {
     const { userId } = req.user;
-    return this.ordersService.getOrders(userId);
+    return await this.ordersService.getOrders(userId);
   }
 
   /**
@@ -121,12 +127,12 @@ export class OrdersController {
     switch (price) {
       case 0:
         const cursorId = 1;
-        return this.ordersService.getProducts(price, cursorId);
+        return await this.ordersService.getProducts(price, cursorId);
 
       default:
         const lastPrice = price;
         const lastId = productId;
-        return this.ordersService.getProducts(lastPrice, lastId);
+        return await this.ordersService.getProducts(lastPrice, lastId);
     }
   }
 
@@ -159,12 +165,12 @@ export class OrdersController {
     switch (price) {
       case 0:
         const cursorId = 1;
-        return this.ordersService.findProducts(productName, price, cursorId);
+        return await this.ordersService.findProducts(productName, price, cursorId);
 
       default:
         const lastPrice = price;
         const lastId = productId;
-        return this.ordersService.findProducts(productName, lastPrice, lastId);
+        return await this.ordersService.findProducts(productName, lastPrice, lastId);
     }
   }
 

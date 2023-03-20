@@ -2,7 +2,7 @@
 // export * from './rmq/rmq.module';
 export * from './rmq/rmq.connection'
 export * from './rmq/constants/service'
-//export * from './database/Database.module';
+export * from './database/Database.module';
 export * from './entity/order.entity';
 export * from './entity/product.entity';
 export * from './entity/user.entity';

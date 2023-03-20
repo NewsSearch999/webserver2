@@ -1,7 +1,6 @@
-import { Controller, OnModuleInit } from '@nestjs/common';
+import { Controller, Get, OnModuleInit } from '@nestjs/common';
 import { BillingService } from './billing.service';
 import { RabbitmqChannelProvider } from '@app/common/rmq/rmq.connection';
-// import { Channel, connect } from 'amqplib/callback_api';
 import { Channel, connect, ConsumeMessage, MessageProperties } from 'amqplib';
 
 @Controller()
@@ -10,12 +9,13 @@ export class BillingControllerC implements OnModuleInit {
   constructor(
     private readonly billingService: BillingService,
     private readonly rabbitmqChannelProvider: RabbitmqChannelProvider,
+
   ) {}
 
   async onModuleInit(): Promise<void> {
     //const channel = await this.rabbitmqChannelProvider.createChannel();
     this.channel = await this.rabbitmqChannelProvider.createChannel();
-
+ 
     await this.channel.consume(
       'billing1',
       async (msg) => {
@@ -27,10 +27,10 @@ export class BillingControllerC implements OnModuleInit {
             throw new Error('fields가 없는데?');
           }
 
-          this.billingService.createOrder(JSON.parse(msg.content.toString()));
+          await this.billingService.createOrder(JSON.parse(msg.content.toString()));
           this.channel.ack(msg, true);
           console.log(
-            'Received billing1 message:',
+            'C Received billing1 message:',
             JSON.parse(msg.content.toString()),
           );
         } catch (error) {
@@ -74,12 +74,11 @@ export class BillingControllerC implements OnModuleInit {
           if (!msg.fields) {
             throw new Error('fields가 없는데?');
           }
-
           const orderData = JSON.parse(msg.content.toString())
-          this.billingService.payment(orderData);
+          await this.billingService.payment(orderData);
           this.channel.ack(msg, true);
           console.log(
-            'Received payment1 message:',
+            'C Received payment1 message:',
             JSON.parse(msg.content.toString()),
           );
         } catch (error) {
@@ -123,13 +122,13 @@ export class BillingControllerC implements OnModuleInit {
             throw new Error('fields가 없는데?');
           }
 
-          this.billingService.createOrder(JSON.parse(msg.content.toString()));
+          await this.billingService.createOrder(JSON.parse(msg.content.toString()));
           this.channel.ack(msg, true);
           console.log(
-            'Received billing2 message:',
+            'C Received billing2 message:',
             JSON.parse(msg.content.toString()),
           );
-          console.log(msg.fields);
+          //console.log(msg.fields);
         } catch (error) {
           if (!msg.fields) throw new Error(`fields가 없는데? : ${msg}`);
           if (msg.properties.headers['x-redelivered-count']) {
@@ -170,11 +169,12 @@ export class BillingControllerC implements OnModuleInit {
           if (!msg.fields) {
             throw new Error('fields가 없는데?');
           }
+
           const orderData = JSON.parse(msg.content.toString())
-          this.billingService.payment(orderData);
+          await this.billingService.payment(orderData);
           this.channel.ack(msg, true);
           console.log(
-            'Received payment2 message:',
+            'C Received payment2 message:',
             JSON.parse(msg.content.toString()),
           );
         } catch (error) {
@@ -207,4 +207,14 @@ export class BillingControllerC implements OnModuleInit {
     );
     // await channel.close();
   }
+
+
+    /**
+   *
+   * ALB 헬스체크 경로
+   */
+     @Get('/')
+     healthCheck() {
+       console.log('billing app healthcheck');
+     }
 }

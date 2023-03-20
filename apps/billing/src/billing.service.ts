@@ -38,25 +38,25 @@ export class BillingService {
         return '재고 수량이 없습니다.';
       }
 
-      const [results, fields] = await connection.query(createQuery, [
+      const results = await connection.query(createQuery, [
         [
           request.productId,
           request.quantity,
-          product[0].price,
+          product.price,
           request.orderState,
           request.deliveryState,
           request.userId,
         ],
       ]);
 
-      if (results) {
+      if (results[0]) {
         /**트랜잭션 커밋 */
         await connection.commit();
         connection.release();
         console.log(
           `[주문완료] 상품번호:${request.productId}, 수량:${request.quantity}`,
         );
-        return fields;
+      
       }
     } catch (e) {
       /**트랜잭션 롤백 */

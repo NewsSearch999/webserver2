@@ -35,7 +35,7 @@ export class OrdersService {
    * @param request
    * @returns
    */
-  async createOrder(request: object) {
+  async createOrder(request) {
     try {
       await this.ordersPublish.publishOrder(request);
 
@@ -68,8 +68,8 @@ export class OrdersService {
       /**주문 정보 조회 */
       const result = await connection.query(seekQuery, [Number(orderId)]);
       const orderData = JSON.parse(JSON.stringify(result))[0][0];
-      console.log('result:', result[0]); //배열 안에 RowData 배열이 들어 있다.
-      console.log('orderData:', orderData);
+      //console.log('result:', result[0]); //배열 안에 RowData 배열이 들어 있다.
+      //console.log('orderData:', orderData);
 
       /**주문자 확인 */
       if (orderData.userId !== userId)
